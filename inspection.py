@@ -1,7 +1,7 @@
 import vtk
 
 reader = vtk.vtkXMLStructuredGridReader()
-reader.SetFileName("output.70000.vts")
+reader.SetFileName("mountain_backcurve40/output.70000.vts")
 reader.Update()
 
 grid = reader.GetOutput()
