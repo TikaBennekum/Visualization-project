@@ -5,7 +5,7 @@ import vtk
 # -----------------------
 # 1. Read the VTS dataset
 # -----------------------
-filename = "output.1000.vts"
+filename = "output.70000.vts"
 
 reader = vtk.vtkXMLGenericDataObjectReader()
 reader.SetFileName(filename)
@@ -17,6 +17,7 @@ print("Loaded:", grid.GetClassName())
 
 # Name of the scalar field that represents potential temperature
 theta_name = "theta"
+theta = grid.GetPointData().GetArray("theta")
 
 
 # --------------------------------------------
@@ -35,7 +36,16 @@ contour.SetInputArrayToProcess(
 
 # A few isovalues in the flame range.
 # You can tweak or add/remove values as you like.
-isovalues = [450.0, 550.0, 650.0, 750.0]
+theta_min, theta_max = theta.GetRange()
+
+low = theta_min + 1.0       # barely above ambient (~301 K)
+mid = theta_min + 5.0
+hi  = theta_min + 20.0
+very_hi = theta_min + 80.0
+
+isovalues = [low, mid, hi, very_hi]
+
+# isovalues = [450.0, 550.0, 650.0, 750.0, 800, 850, 900, 950, 1000]
 for i, value in enumerate(isovalues):
     contour.SetValue(i, value)
 
