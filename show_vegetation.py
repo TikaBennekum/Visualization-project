@@ -19,7 +19,8 @@ rhof_1_name = "rhof_1"
 
 
 # --------------------------------------------
-# 2. Build isosurfaces for vegetation density
+# 2. Build isosurfaces for "fire" temperature
+#    (flame is roughly 400–800 K per the spec)
 # --------------------------------------------
 # Instead of drawing a few isosurfaces, extract the dataset surface
 # and color it continuously by the `rhof_1` scalar.
@@ -64,6 +65,7 @@ for i in range(num_entries):
     r = 0.05 + 0.15 * t
     g = 0.35 + 0.6 * t
     b = 0.05
+    # treat very small values as air -> transparent
     alpha = 0.0 if scalar_val <= eps_zero else 1.0
     lut.SetTableValue(i, r, g, b, alpha)
 
