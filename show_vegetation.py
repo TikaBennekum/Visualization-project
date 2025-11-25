@@ -1,4 +1,7 @@
 # !/usr/bin/env vtkpython
+
+import os
+
 import vtk
 
 # -----------------------
@@ -95,4 +98,52 @@ renderer.ResetCameraClippingRange()
 # ------------------------------
 render_window.Render()
 interactor.Initialize()
-interactor.Start()
+
+# -----------------------------
+# Animation: cycle through frames
+# -----------------------------
+# Build a list of filenames to animate between (inclusive). Adjust start/end/step.
+anim_start = 10000
+anim_end = 20000
+anim_step = 1000
+anim_folder = os.path.dirname(filename)
+frame_files = []
+for t in range(anim_start, anim_end + 1, anim_step):
+    fn = os.path.join(anim_folder, f"output.{t}.vts")
+    if os.path.exists(fn):
+        frame_files.append(fn)
+
+if len(frame_files) == 0:
+    print("No animation frames found; running single-frame view.")
+    interactor.Start()
+else:
+    print(f"Animating {len(frame_files)} frames:", frame_files)
+
+    state = {"i": 0, "running": True}
+
+    def timer_callback(obj, event):
+        if not state["running"]:
+            return
+        i = state["i"]
+        fn = frame_files[i]
+        print("Loading frame:", fn)
+        reader.SetFileName(fn)
+        reader.Update()
+        contour.SetInputData(reader.GetOutput())
+        contour.Modified()
+        render_window.Render()
+        state["i"] = (i + 1) % len(frame_files)
+
+    def keypress(obj, event):
+        key = obj.GetKeySym()
+        if key == "space":
+            state["running"] = not state["running"]
+            print("Animation running=" + str(state["running"]))
+        if key == "q":
+            interactor.DestroyTimer(timer_id)
+            interactor.TerminateApp()
+
+    interactor.AddObserver("KeyPressEvent", keypress)
+    timer_id = interactor.CreateRepeatingTimer(600)
+    interactor.AddObserver("TimerEvent", timer_callback)
+    interactor.Start()
