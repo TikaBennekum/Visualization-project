@@ -1,4 +1,3 @@
-output.1000.vts
-output.10000.vts
-output.20000.vts
-output.70000.vts
+mountain_backcurve40/
+.DS_Store
+vtk_env/

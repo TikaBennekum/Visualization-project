@@ -1,11 +1,10 @@
-
 # !/usr/bin/env vtkpython
 import vtk
 
 # -----------------------
 # 1. Read the VTS dataset
 # -----------------------
-filename = "mountain_backcurve40/output.70000.vts"
+filename = "mountain_backcurve40/output.7000.vts"
 
 reader = vtk.vtkXMLGenericDataObjectReader()
 reader.SetFileName(filename)
@@ -38,9 +37,9 @@ contour.SetInputArrayToProcess(
 # You can tweak or add/remove values as you like.
 theta_min, theta_max = theta.GetRange()
 
-low = theta_min + 1.0       # barely above ambient (~301 K)
+low = theta_min + 1.0  # barely above ambient (~301 K)
 mid = theta_min + 5.0
-hi  = theta_min + 20.0
+hi = theta_min + 20.0
 very_hi = theta_min + 80.0
 
 isovalues = [low, mid, hi, very_hi]
