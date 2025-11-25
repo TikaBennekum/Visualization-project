@@ -4,7 +4,7 @@ import vtk
 # -----------------------
 # 1. Read the VTS dataset
 # -----------------------
-filename = "mountain_backcurve40/output.7000.vts"
+filename = "mountain_backcurve40/output.50000.vts"
 
 reader = vtk.vtkXMLGenericDataObjectReader()
 reader.SetFileName(filename)
@@ -18,10 +18,9 @@ print("Loaded:", grid.GetClassName())
 rhof_1_name = "rhof_1"
 rhof_1 = grid.GetPointData().GetArray("rhof_1")
 
-
 # --------------------------------------------
-# 2. Build isosurfaces for "fire" temperature
-#    (flame is roughly 400–800 K per the spec)
+# 2. Build isosurfaces for "vegetation" density
+#    (vegetation is roughly 0.1–0.6 per the spec)
 # --------------------------------------------
 contour = vtk.vtkContourFilter()
 contour.SetInputData(grid)
@@ -37,7 +36,8 @@ contour.SetInputArrayToProcess(
 # You can tweak or add/remove values as you like.
 rhof_1_min, rhof_1_max = rhof_1.GetRange()
 
-isovalues = [0.2, 0.4, 0.6]
+isovalues = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+
 for i, value in enumerate(isovalues):
     contour.SetValue(i, value)
 
@@ -50,7 +50,7 @@ fire_mapper.SetInputConnection(contour.GetOutputPort())
 # Use rhof_1 for coloring
 fire_mapper.SetScalarModeToUsePointFieldData()
 fire_mapper.SelectColorArray(rhof_1_name)
-fire_mapper.SetScalarRange(0.2, 0.6)  # color range restricted to vegetation
+fire_mapper.SetScalarRange(0, 0.6)  # color range restricted to vegetation
 
 fire_actor = vtk.vtkActor()
 fire_actor.SetMapper(fire_mapper)
