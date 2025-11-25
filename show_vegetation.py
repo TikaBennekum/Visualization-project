@@ -1,5 +1,6 @@
 # !/usr/bin/env vtkpython
 
+import math
 import os
 
 import vtk
@@ -7,7 +8,7 @@ import vtk
 # -----------------------
 # 1. Read the VTS dataset
 # -----------------------
-filename = "mountain_backcurve40/output.50000.vts"
+filename = "mountain_backcurve40/output.10000.vts"
 
 reader = vtk.vtkXMLGenericDataObjectReader()
 reader.SetFileName(filename)
@@ -86,11 +87,44 @@ render_window.SetSize(900, 700)
 interactor = vtk.vtkRenderWindowInteractor()
 interactor.SetRenderWindow(render_window)
 
-# Optional: a slightly nicer camera position
-renderer.ResetCamera()
+
+# Key handler to print current camera parameters (position, focal point, view up)
+# and derived azimuth/elevation relative to the focal point. Press 'p' while
+# the interactor has focus to print values to the console.
+def print_camera_params(obj, event):
+    key = obj.GetKeySym()
+    if key != "p":
+        return
+    cam = renderer.GetActiveCamera()
+    pos = cam.GetPosition()
+    fp = cam.GetFocalPoint()
+    vu = cam.GetViewUp()
+    dx = pos[0] - fp[0]
+    dy = pos[1] - fp[1]
+    dz = pos[2] - fp[2]
+    horiz_dist = math.hypot(dx, dy)
+    dist = math.sqrt(dx * dx + dy * dy + dz * dz)
+    # Azimuth: angle in XY plane from +X toward +Y
+    azimuth = math.degrees(math.atan2(dy, dx))
+    # Elevation: angle above the XY plane
+    elevation = math.degrees(math.atan2(dz, horiz_dist))
+    print("\nCamera parameters:")
+    print(f"  Position: {pos}")
+    print(f"  FocalPoint: {fp}")
+    print(f"  ViewUp: {vu}")
+    print(f"  Distance: {dist:.3f}")
+    print(f"  Azimuth (deg): {azimuth:.3f}")
+    print(f"  Elevation (deg): {elevation:.3f}\n")
+
+
+interactor.AddObserver("KeyPressEvent", print_camera_params)
+
+# Optional: set camera to a saved position (from user)
 camera = renderer.GetActiveCamera()
-camera.Azimuth(30)
-camera.Elevation(20)
+# User-provided camera parameters
+camera.SetPosition(1166.9393086976156, -2348.8726187497973, 2780.6186615624197)
+camera.SetFocalPoint(101.0, -1.0, 449.6810739215296)
+camera.SetViewUp(-0.26897888898416095, 0.6143246476336248, 0.741792143791419)
 renderer.ResetCameraClippingRange()
 
 # ------------------------------
