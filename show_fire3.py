@@ -97,12 +97,19 @@ vegetation_actor.SetMapper(vegetation_mapper)
 # You can tweak these as needed; these are relatively close to theta_min
 # so you get a set of nested shells. If you know the range better, feel
 # free to shift them.
+# low      = theta_min + 2.0    # smoke (cool)
+# mid      = theta_min + 4.0    # smoke (warmer)
+# hi       = theta_min + 6.7    # fire (hot)
+# higher = theta_min + 7.2 # fire (hotter)
+# very_hi  = theta_min + 8.0    # fire (very hot)
+
 low      = theta_min + 2.0    # smoke (cool)
 mid      = theta_min + 4.0    # smoke (warmer)
-hi       = theta_min + 6.0    # fire (hot)
-very_hi  = theta_min + 8.0    # fire (very hot)
+hi       = theta_min + 5.5    # fire (hot)
+higher = theta_min + 7.0 # fire (hotter)
+very_hi  = theta_min + 25    # fire (very hot)
 
-isovalues = [low, mid, hi, very_hi]
+isovalues = [low, mid, hi, higher, very_hi]
 
 # -------------------------------------------------------
 # 3. Helper: build one contour + actor for a single level
@@ -152,14 +159,21 @@ smoke_actor_mid = make_iso_actor(
 # Fire: more opaque, warm colors
 fire_actor_hi = make_iso_actor(
     grid, theta_name, hi,
-    color=(1.0, 0.15, 0.0),   # orange-red
+    color=(1.0, 0.15, 0.0),   # red
+    opacity=0.60             # fairly solid
+)
+
+fire_actor_higher = make_iso_actor(
+    grid, theta_name, higher,
+    color=(1.0, 0.57, 0.05),   # orange
     opacity=0.70             # fairly solid
 )
 
+
 fire_actor_very_hi = make_iso_actor(
     grid, theta_name, very_hi,
-    color=(1.0, 0.6, 0.05),   # yellow
-    opacity=0.95             # almost fully opaque
+    color=(1.0, 0.85, 0.0),   # yellow
+    opacity=0.80             # almost fully opaque
 )
 
 # --------------------------------
@@ -186,6 +200,7 @@ renderer.SetBackground(0.1, 0.1, 0.15)
 renderer.AddActor(smoke_actor_low)
 renderer.AddActor(smoke_actor_mid)
 renderer.AddActor(fire_actor_hi)
+renderer.AddActor(fire_actor_higher)
 renderer.AddActor(fire_actor_very_hi)
 renderer.AddActor(outline_actor)
 renderer.AddActor(vegetation_actor)
