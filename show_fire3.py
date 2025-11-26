@@ -80,7 +80,7 @@ hi = theta_min + 5.5  # fire (hot)
 higher = theta_min + 7.0  # fire (hotter)
 very_hi = theta_min + 25  # fire (very hot)
 
-isovalues = [low, mid, hi, very_hi]
+isovalues = [low, mid, hi, higher, very_hi]
 
 
 # -------------------------------------------------------
