@@ -179,7 +179,7 @@ fire_actor_very_hi = make_iso_actor(
 )
 
 # --------------------------------
-# 5. Add a simple domain outline
+# 5. Add a simple domain outline and set the bottom of the domain to be black
 # --------------------------------
 outline_filter = vtk.vtkStructuredGridOutlineFilter()
 outline_filter.SetInputData(grid)
@@ -192,6 +192,25 @@ outline_actor.SetMapper(outline_mapper)
 outline_actor.GetProperty().SetColor(1.0, 1.0, 1.0)  # white outline
 outline_actor.GetProperty().SetLineWidth(1.0)
 
+# Create a polygon (or plane) covering the entire XY domain
+plane = vtk.vtkPlaneSource()
+plane.SetOrigin(-650, -500, 0)  # corner coordinates
+plane.SetPoint1(650, -500, 0)
+plane.SetPoint2(-650, 500, 0)
+plane.SetResolution(1, 1)  # single quad
+plane.Update()
+
+plane_mapper = vtk.vtkPolyDataMapper()
+plane_mapper.SetInputConnection(plane.GetOutputPort())
+
+plane_actor = vtk.vtkActor()
+plane_actor.SetMapper(plane_mapper)
+plane_actor.GetProperty().SetColor(0, 0, 0)  # black
+plane_actor.GetProperty().SetAmbient(1.0)
+plane_actor.GetProperty().SetDiffuse(0.0)  # full ambient lighting, no shading
+plane_actor.GetProperty().SetSpecular(0.0)
+plane_actor.GetProperty().SetOpacity(1.0)  # fully opaque
+
 # ------------------------------
 # 6. Renderer / window / camera
 # ------------------------------
@@ -199,13 +218,14 @@ renderer = vtk.vtkRenderer()
 renderer.SetBackground(0.1, 0.1, 0.15)
 
 # Add actors in a sensible order (smoke behind fire visually)
+renderer.AddActor(vegetation_actor)
+renderer.AddActor(plane_actor)
 renderer.AddActor(smoke_actor_low)
 renderer.AddActor(smoke_actor_mid)
 renderer.AddActor(fire_actor_hi)
 renderer.AddActor(fire_actor_higher)
 renderer.AddActor(fire_actor_very_hi)
 renderer.AddActor(outline_actor)
-renderer.AddActor(vegetation_actor)
 
 # Add a scalar bar (color legend) for vegetation
 scalar_bar = vtk.vtkScalarBarActor()
