@@ -94,15 +94,6 @@ vegetation_actor.SetMapper(vegetation_mapper)
 # --------------------------------------------
 # 2. FIRE AND SMOKE values to colors
 # --------------------------------------------
-# You can tweak these as needed; these are relatively close to theta_min
-# so you get a set of nested shells. If you know the range better, feel
-# free to shift them.
-# low      = theta_min + 2.0    # smoke (cool)
-# mid      = theta_min + 4.0    # smoke (warmer)
-# hi       = theta_min + 6.7    # fire (hot)
-# higher = theta_min + 7.2 # fire (hotter)
-# very_hi  = theta_min + 8.0    # fire (very hot)
-
 low      = theta_min + 2.0    # smoke (cool)
 mid      = theta_min + 4.0    # smoke (warmer)
 hi       = theta_min + 5.5    # fire (hot)
