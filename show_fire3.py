@@ -4,7 +4,7 @@ import vtk
 # -----------------------
 # 1. Read the VTS dataset
 # -----------------------
-filename = "mountain_backcurve40/output.70000.vts"
+filename = "mountain_backcurve40/output.50000.vts"
 
 reader = vtk.vtkXMLGenericDataObjectReader()
 reader.SetFileName(filename)
@@ -21,7 +21,7 @@ theta_min, theta_max = theta.GetRange()
 print("theta range:", theta_min, theta_max)
 
 # --------------------------------------------
-# 2. VEGATATION
+# 2. VEGETATION
 # --------------------------------------------
 
 # Name of the scalar field that represents vegetation
@@ -56,32 +56,13 @@ vegetation_mapper.SetScalarRange(0, 0.6)  # color range restricted to vegetation
 
 # Create a green lookup table for the contour mapper so we can show a colorbar
 lut = vtk.vtkLookupTable()
-num_entries = 256
-lut.SetNumberOfTableValues(num_entries)
+lut.SetNumberOfTableValues(256)
+lut.SetRange(rhof_1_min, rhof_1_max)
+
+lut.SetHueRange(0.33, 0.33)  # pure green
+lut.SetValueRange(1.0, 0.4)  # brightness: light -> dark (adjusted too)
+lut.SetSaturationRange(0.6, 1.0)  # avoid pale/white low saturation
 lut.Build()
-
-# Ensure the LUT covers the actual scalar range in the data (not just 0..1)
-try:
-    lut.SetRange(rhof_1_min, rhof_1_max)
-except Exception:
-    lut.SetRange(0.0, 0.6)
-
-for i in range(num_entries):
-    t = float(i) / (num_entries - 1)
-    # Dark -> bright green -> yellow/white ramp (three-point interpolation)
-    if t < 0.5:
-        # interpolate from dark green to bright green
-        u = t / 0.5
-        r = (0.0 * (1 - u)) + (0.2 * u)
-        g = (0.15 * (1 - u)) + (0.9 * u)
-        b = (0.0 * (1 - u)) + (0.15 * u)
-    else:
-        # interpolate from bright green to yellowish/white
-        u = (t - 0.5) / 0.5
-        r = (0.2 * (1 - u)) + (1.0 * u)
-        g = (0.9 * (1 - u)) + (1.0 * u)
-        b = (0.15 * (1 - u)) + (0.9 * u)
-    lut.SetTableValue(i, r, g, b, 1.0)
 
 vegetation_mapper.SetLookupTable(lut)
 vegetation_mapper.SetUseLookupTableScalarRange(True)
@@ -90,17 +71,17 @@ vegetation_mapper.ScalarVisibilityOn()
 vegetation_actor = vtk.vtkActor()
 vegetation_actor.SetMapper(vegetation_mapper)
 
-
 # --------------------------------------------
 # 2. FIRE AND SMOKE values to colors
 # --------------------------------------------
-low      = theta_min + 2.0    # smoke (cool)
-mid      = theta_min + 4.0    # smoke (warmer)
-hi       = theta_min + 5.5    # fire (hot)
-higher = theta_min + 7.0 # fire (hotter)
-very_hi  = theta_min + 25    # fire (very hot)
+low = theta_min + 2.0  # smoke (cool)
+mid = theta_min + 4.0  # smoke (warmer)
+hi = theta_min + 5.5  # fire (hot)
+higher = theta_min + 7.0  # fire (hotter)
+very_hi = theta_min + 25  # fire (very hot)
 
 isovalues = [low, mid, hi, higher, very_hi]
+
 
 # -------------------------------------------------------
 # 3. Helper: build one contour + actor for a single level
@@ -131,40 +112,70 @@ def make_iso_actor(grid, theta_name, iso_value, color, opacity):
 
     return actor
 
+
 # ------------------------------------
 # 4. Create smoke + fire iso-actors
 # ------------------------------------
+# Create a color lookup table for the contour mapper so we can show a colorbar
+fire_lut = vtk.vtkLookupTable()
+fire_lut.SetNumberOfTableValues(5)
+fire_lut.SetRange(low, very_hi)
+fire_lut.Build()
+
+# Assign colors to your levels: smoke low → smoke mid → fire → very hot
+fire_colors = [
+    (0.7, 0.7, 0.7),  # light gray
+    (0.5, 0.5, 0.5),  # dark gray
+    (1.0, 0.15, 0.0),  # red
+    (1.0, 0.57, 0.05),  # orange
+    (1.0, 0.85, 0.0),  # yellow
+]
+
+for i, color in enumerate(fire_colors):
+    fire_lut.SetTableValue(i, *color, 1.0)  # RGB + alpha
+
+
 # Smoke: more translucent, grayish
 smoke_actor_low = make_iso_actor(
-    grid, theta_name, low,
-    color=(0.7, 0.7, 0.7),   # light gray
-    opacity=0.15             # very translucent
+    grid,
+    theta_name,
+    low,
+    color=(0.7, 0.7, 0.7),  # light gray
+    opacity=0.15,  # very translucent
 )
 
 smoke_actor_mid = make_iso_actor(
-    grid, theta_name, mid,
-    color=(0.5, 0.5, 0.5),   # darker gray
-    opacity=0.30             # slightly denser smoke
+    grid,
+    theta_name,
+    mid,
+    color=(0.5, 0.5, 0.5),  # darker gray
+    opacity=0.30,  # slightly denser smoke
 )
 
 # Fire: more opaque, warm colors
 fire_actor_hi = make_iso_actor(
-    grid, theta_name, hi,
-    color=(1.0, 0.15, 0.0),   # red
-    opacity=0.60             # fairly solid
+    grid,
+    theta_name,
+    hi,
+    color=(1.0, 0.15, 0.0),  # red
+    opacity=0.60,  # fairly solid
 )
 
 fire_actor_higher = make_iso_actor(
-    grid, theta_name, higher,
-    color=(1.0, 0.57, 0.05),   # orange
-    opacity=0.70             # fairly solid
+    grid,
+    theta_name,
+    higher,
+    color=(1.0, 0.57, 0.05),  # orange
+    opacity=0.70,  # fairly solid
 )
 
 
 fire_actor_very_hi = make_iso_actor(
-    grid, theta_name, very_hi,
-    color=(1.0, 0.85, 0.0),   # yellow
-    opacity=0.80             # almost fully opaque
+    grid,
+    theta_name,
+    very_hi,
+    color=(1.0, 0.85, 0.0),  # yellow
+    opacity=0.80,  # almost fully opaque
 )
 
 # --------------------------------
@@ -205,7 +216,49 @@ scalar_bar.SetOrientationToVertical()
 scalar_bar.SetPosition(0.88, 0.1)
 scalar_bar.SetWidth(0.08)
 scalar_bar.SetHeight(0.8)
+scalar_bar.UnconstrainedFontSizeOn()
+
+# Increase font sizes for better readability
+title_prop = scalar_bar.GetTitleTextProperty()
+title_prop.SetFontSize(24)  # increase font size
+title_prop.SetBold(True)
+title_prop.SetColor(1.0, 1.0, 1.0)  # white text (optional)
+title_prop.SetFontFamilyToArial()
+
+label_prop = scalar_bar.GetLabelTextProperty()
+label_prop.SetFontFamilyToArial()
+label_prop.SetBold(True)
+label_prop.SetFontSize(24)  # larger labels
+label_prop.SetColor(1, 1, 1)
+
 renderer.AddViewProp(scalar_bar)
+
+# Add a scalar bar (color legend) for temperature
+temp_scalar_bar = vtk.vtkScalarBarActor()
+temp_scalar_bar.SetLookupTable(fire_lut)
+temp_scalar_bar.SetTitle("Temperature")
+temp_scalar_bar.SetNumberOfLabels(5)
+temp_scalar_bar.SetOrientationToVertical()
+temp_scalar_bar.SetPosition(0.12, 0.1)
+temp_scalar_bar.SetWidth(0.08)
+temp_scalar_bar.SetHeight(0.8)
+temp_scalar_bar.UnconstrainedFontSizeOn()
+temp_scalar_bar.SetLabelFormat("%.1f")
+
+# Increase font sizes for better readability
+title_prop = temp_scalar_bar.GetTitleTextProperty()
+title_prop.SetFontSize(24)  # increase font size
+title_prop.SetBold(True)
+title_prop.SetColor(1.0, 1.0, 1.0)  # white text (optional)
+title_prop.SetFontFamilyToArial()
+
+label_prop = temp_scalar_bar.GetLabelTextProperty()
+label_prop.SetFontFamilyToArial()
+label_prop.SetBold(True)
+label_prop.SetFontSize(24)  # larger labels
+label_prop.SetColor(1, 1, 1)
+
+renderer.AddViewProp(temp_scalar_bar)
 
 render_window = vtk.vtkRenderWindow()
 render_window.AddRenderer(renderer)
@@ -214,19 +267,6 @@ render_window.SetSize(900, 700)
 interactor = vtk.vtkRenderWindowInteractor()
 interactor.SetRenderWindow(render_window)
 
-# Optional: nicer camera
-renderer.ResetCamera()
-camera = renderer.GetActiveCamera()
-camera.Azimuth(30)
-camera.Elevation(20)
-renderer.ResetCameraClippingRange()
-
-# For better transparency rendering (optional but recommended)
-render_window.SetAlphaBitPlanes(1)
-renderer.SetUseDepthPeeling(1)
-renderer.SetMaximumNumberOfPeels(100)
-renderer.SetOcclusionRatio(0.1)
-
 # Optional: set camera to a saved position (from user)
 camera = renderer.GetActiveCamera()
 # User-provided camera parameters
@@ -234,6 +274,12 @@ camera.SetPosition(1166.9393086976156, -2348.8726187497973, 2780.6186615624197)
 camera.SetFocalPoint(101.0, -1.0, 449.6810739215296)
 camera.SetViewUp(-0.26897888898416095, 0.6143246476336248, 0.741792143791419)
 renderer.ResetCameraClippingRange()
+
+# For better transparency rendering (optional but recommended)
+render_window.SetAlphaBitPlanes(1)
+renderer.SetUseDepthPeeling(1)
+renderer.SetMaximumNumberOfPeels(100)
+renderer.SetOcclusionRatio(0.1)
 
 # ------------------------------
 # 7. Start interactive rendering
