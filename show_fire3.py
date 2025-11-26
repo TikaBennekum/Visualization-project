@@ -21,7 +21,78 @@ theta_min, theta_max = theta.GetRange()
 print("theta range:", theta_min, theta_max)
 
 # --------------------------------------------
-# 2. Choose isovalues for smoke and fire bands
+# 2. VEGATATION
+# --------------------------------------------
+
+# Name of the scalar field that represents vegetation
+rhof_1_name = "rhof_1"
+rhof_1 = grid.GetPointData().GetArray("rhof_1")
+
+contour = vtk.vtkContourFilter()
+contour.SetInputData(grid)
+contour.SetInputArrayToProcess(
+    0,  # idx
+    0,  # port
+    0,  # conn
+    vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS,
+    rhof_1_name,
+)
+
+# A few isovalues in the vegetation range.
+rhof_1_min, rhof_1_max = rhof_1.GetRange()
+
+isovalues = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+
+for i, value in enumerate(isovalues):
+    contour.SetValue(i, value)
+
+    vegetation_mapper = vtk.vtkPolyDataMapper()
+vegetation_mapper.SetInputConnection(contour.GetOutputPort())
+
+# Use rhof_1 for coloring
+vegetation_mapper.SetScalarModeToUsePointFieldData()
+vegetation_mapper.SelectColorArray(rhof_1_name)
+vegetation_mapper.SetScalarRange(0, 0.6)  # color range restricted to vegetation
+
+# Create a green lookup table for the contour mapper so we can show a colorbar
+lut = vtk.vtkLookupTable()
+num_entries = 256
+lut.SetNumberOfTableValues(num_entries)
+lut.Build()
+
+# Ensure the LUT covers the actual scalar range in the data (not just 0..1)
+try:
+    lut.SetRange(rhof_1_min, rhof_1_max)
+except Exception:
+    lut.SetRange(0.0, 0.6)
+
+for i in range(num_entries):
+    t = float(i) / (num_entries - 1)
+    # Dark -> bright green -> yellow/white ramp (three-point interpolation)
+    if t < 0.5:
+        # interpolate from dark green to bright green
+        u = t / 0.5
+        r = (0.0 * (1 - u)) + (0.2 * u)
+        g = (0.15 * (1 - u)) + (0.9 * u)
+        b = (0.0 * (1 - u)) + (0.15 * u)
+    else:
+        # interpolate from bright green to yellowish/white
+        u = (t - 0.5) / 0.5
+        r = (0.2 * (1 - u)) + (1.0 * u)
+        g = (0.9 * (1 - u)) + (1.0 * u)
+        b = (0.15 * (1 - u)) + (0.9 * u)
+    lut.SetTableValue(i, r, g, b, 1.0)
+
+vegetation_mapper.SetLookupTable(lut)
+vegetation_mapper.SetUseLookupTableScalarRange(True)
+vegetation_mapper.ScalarVisibilityOn()
+
+vegetation_actor = vtk.vtkActor()
+vegetation_actor.SetMapper(vegetation_mapper)
+
+
+# --------------------------------------------
+# 2. FIRE AND SMOKE values to colors
 # --------------------------------------------
 # You can tweak these as needed; these are relatively close to theta_min
 # so you get a set of nested shells. If you know the range better, feel
@@ -117,6 +188,18 @@ renderer.AddActor(smoke_actor_mid)
 renderer.AddActor(fire_actor_hi)
 renderer.AddActor(fire_actor_very_hi)
 renderer.AddActor(outline_actor)
+renderer.AddActor(vegetation_actor)
+
+# Add a scalar bar (color legend) for vegetation
+scalar_bar = vtk.vtkScalarBarActor()
+scalar_bar.SetLookupTable(lut)
+scalar_bar.SetTitle("Vegetation density")
+scalar_bar.SetNumberOfLabels(5)
+scalar_bar.SetOrientationToVertical()
+scalar_bar.SetPosition(0.88, 0.1)
+scalar_bar.SetWidth(0.08)
+scalar_bar.SetHeight(0.8)
+renderer.AddViewProp(scalar_bar)
 
 render_window = vtk.vtkRenderWindow()
 render_window.AddRenderer(renderer)
@@ -137,6 +220,14 @@ render_window.SetAlphaBitPlanes(1)
 renderer.SetUseDepthPeeling(1)
 renderer.SetMaximumNumberOfPeels(100)
 renderer.SetOcclusionRatio(0.1)
+
+# Optional: set camera to a saved position (from user)
+camera = renderer.GetActiveCamera()
+# User-provided camera parameters
+camera.SetPosition(1166.9393086976156, -2348.8726187497973, 2780.6186615624197)
+camera.SetFocalPoint(101.0, -1.0, 449.6810739215296)
+camera.SetViewUp(-0.26897888898416095, 0.6143246476336248, 0.741792143791419)
+renderer.ResetCameraClippingRange()
 
 # ------------------------------
 # 7. Start interactive rendering
