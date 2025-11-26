@@ -2,3 +2,7 @@ output.1000.vts
 output.10000.vts
 output.20000.vts
 output.70000.vts
+
+.DS_Store
+mountain_backcurve40/
+vtk_env/

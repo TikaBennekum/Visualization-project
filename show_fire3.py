@@ -4,7 +4,7 @@ import vtk
 # -----------------------
 # 1. Read the VTS dataset
 # -----------------------
-filename = "mountain_backcurve40/output.70000.vts"
+filename = "mountain_backcurve40/output.50000.vts"
 
 reader = vtk.vtkXMLGenericDataObjectReader()
 reader.SetFileName(filename)
@@ -58,29 +58,14 @@ vegetation_mapper.SetScalarRange(0, 0.6)  # color range restricted to vegetation
 lut = vtk.vtkLookupTable()
 num_entries = 256
 lut.SetNumberOfTableValues(num_entries)
+lut.SetRange(rhof_1_min, rhof_1_max)
 lut.Build()
 
-# Ensure the LUT covers the actual scalar range in the data (not just 0..1)
-try:
-    lut.SetRange(rhof_1_min, rhof_1_max)
-except Exception:
-    lut.SetRange(0.0, 0.6)
-
 for i in range(num_entries):
-    t = float(i) / (num_entries - 1)
-    # Dark -> bright green -> yellow/white ramp (three-point interpolation)
-    if t < 0.5:
-        # interpolate from dark green to bright green
-        u = t / 0.5
-        r = (0.0 * (1 - u)) + (0.2 * u)
-        g = (0.15 * (1 - u)) + (0.9 * u)
-        b = (0.0 * (1 - u)) + (0.15 * u)
-    else:
-        # interpolate from bright green to yellowish/white
-        u = (t - 0.5) / 0.5
-        r = (0.2 * (1 - u)) + (1.0 * u)
-        g = (0.9 * (1 - u)) + (1.0 * u)
-        b = (0.15 * (1 - u)) + (0.9 * u)
+    t = 1.0 - (i / (num_entries - 1))
+    r = 0.0
+    g = 0.1 + 0.9 * t  # 0.1 → 1.0
+    b = 0.0
     lut.SetTableValue(i, r, g, b, 1.0)
 
 vegetation_mapper.SetLookupTable(lut)
@@ -94,13 +79,14 @@ vegetation_actor.SetMapper(vegetation_mapper)
 # --------------------------------------------
 # 2. FIRE AND SMOKE values to colors
 # --------------------------------------------
-low      = theta_min + 2.0    # smoke (cool)
-mid      = theta_min + 4.0    # smoke (warmer)
-hi       = theta_min + 5.5    # fire (hot)
-higher = theta_min + 7.0 # fire (hotter)
-very_hi  = theta_min + 25    # fire (very hot)
+low = theta_min + 2.0  # smoke (cool)
+mid = theta_min + 4.0  # smoke (warmer)
+hi = theta_min + 5.5  # fire (hot)
+higher = theta_min + 7.0  # fire (hotter)
+very_hi = theta_min + 25  # fire (very hot)
 
-isovalues = [low, mid, hi, higher, very_hi]
+isovalues = [low, mid, hi, very_hi]
+
 
 # -------------------------------------------------------
 # 3. Helper: build one contour + actor for a single level
@@ -131,40 +117,51 @@ def make_iso_actor(grid, theta_name, iso_value, color, opacity):
 
     return actor
 
+
 # ------------------------------------
 # 4. Create smoke + fire iso-actors
 # ------------------------------------
 # Smoke: more translucent, grayish
 smoke_actor_low = make_iso_actor(
-    grid, theta_name, low,
-    color=(0.7, 0.7, 0.7),   # light gray
-    opacity=0.15             # very translucent
+    grid,
+    theta_name,
+    low,
+    color=(0.7, 0.7, 0.7),  # light gray
+    opacity=0.15,  # very translucent
 )
 
 smoke_actor_mid = make_iso_actor(
-    grid, theta_name, mid,
-    color=(0.5, 0.5, 0.5),   # darker gray
-    opacity=0.30             # slightly denser smoke
+    grid,
+    theta_name,
+    mid,
+    color=(0.5, 0.5, 0.5),  # darker gray
+    opacity=0.30,  # slightly denser smoke
 )
 
 # Fire: more opaque, warm colors
 fire_actor_hi = make_iso_actor(
-    grid, theta_name, hi,
-    color=(1.0, 0.15, 0.0),   # red
-    opacity=0.60             # fairly solid
+    grid,
+    theta_name,
+    hi,
+    color=(1.0, 0.15, 0.0),  # red
+    opacity=0.60,  # fairly solid
 )
 
 fire_actor_higher = make_iso_actor(
-    grid, theta_name, higher,
-    color=(1.0, 0.57, 0.05),   # orange
-    opacity=0.70             # fairly solid
+    grid,
+    theta_name,
+    higher,
+    color=(1.0, 0.57, 0.05),  # orange
+    opacity=0.70,  # fairly solid
 )
 
 
 fire_actor_very_hi = make_iso_actor(
-    grid, theta_name, very_hi,
-    color=(1.0, 0.85, 0.0),   # yellow
-    opacity=0.80             # almost fully opaque
+    grid,
+    theta_name,
+    very_hi,
+    color=(1.0, 0.85, 0.0),  # yellow
+    opacity=0.80,  # almost fully opaque
 )
 
 # --------------------------------
