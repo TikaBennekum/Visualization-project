@@ -36,14 +36,25 @@ theta_min, theta_max = theta.GetRange()
 
 # Choose some isovalues based on theta_min
 low = theta_min + 1.0       # barely above ambient
-mid = theta_min + 5.0
-hi  = theta_min + 20.0
-very_hi = theta_min + 80.0
+mid = theta_min + 2.0
+hi  = theta_min + 2.8
+very_hi = theta_min + 3.5
+
+# span = theta_max - theta_min
+
+# low     = theta_min + 0.10 * span
+# mid     = theta_min + 0.25 * span
+# hi      = theta_min + 0.45 * span
+# very_hi = theta_min + 0.70 * span
 
 isovalues = [low, mid, hi, very_hi]
 
 for i, value in enumerate(isovalues):
     contour.SetValue(i, value)
+
+volumeProperty = vtk.vtkVolumeProperty()
+volumeProperty.SetScalarOpacityUnitDistance(0.5)  # increase for more transparent
+
 
 # --------------------------
 # 3. Mapper & actor for fire
@@ -64,12 +75,12 @@ ctf = vtk.vtkColorTransferFunction()
 
 # Low θ → smoke (grayish)
 ctf.AddRGBPoint(theta_min, 0.1, 0.1, 0.1)         # very cold: almost black
-ctf.AddRGBPoint(low,       0.6, 0.6, 0.6)         # cool: light gray smoke
+ctf.AddRGBPoint(low,       0.5, 0.5, 0.5)         # cool: light gray smoke
 ctf.AddRGBPoint(mid,       0.3, 0.3, 0.3)         # a bit darker smoke
 
 # High θ → fire (orange → yellow)
-ctf.AddRGBPoint(hi,        1.0, 0.4, 0.0)         # hot: orange
-ctf.AddRGBPoint(very_hi,   1.0, 1.0, 0.0)         # very hot: yellow fire
+ctf.AddRGBPoint(hi,        1.0, 0.1, 0.0)         # hot: red
+ctf.AddRGBPoint(very_hi,   1.0, 0.75, 0.0)         # very hot: orange
 
 # Attach to mapper and set scalar range
 fire_mapper.SetLookupTable(ctf)

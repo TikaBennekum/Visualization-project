@@ -58,10 +58,29 @@ fire_mapper.SetInputConnection(contour.GetOutputPort())
 # Use theta for coloring
 fire_mapper.SetScalarModeToUsePointFieldData()
 fire_mapper.SelectColorArray(theta_name)
-fire_mapper.SetScalarRange(400.0, 800.0)  # color range restricted to flame temps
+fire_mapper.SetScalarRange(low, very_hi)  # color range restricted to flame temps
 
 fire_actor = vtk.vtkActor()
 fire_actor.SetMapper(fire_mapper)
+
+# ---------------------------
+# Custom fire color map (LUT)
+# ---------------------------
+lut = vtk.vtkLookupTable()
+lut.SetNumberOfTableValues(5)
+lut.Build()
+
+# Define colors from low to high temperature
+# Gray → Yellow → Orange → Red → White-hot
+lut.SetTableValue(0, 0.6, 0.6, 0.6, 1.0)   # cold: gray
+lut.SetTableValue(1, 1.0, 1.0, 0.0, 1.0)   # mild: yellow
+lut.SetTableValue(2, 1.0, 0.6, 0.0, 1.0)   # warm: orange
+lut.SetTableValue(3, 1.0, 0.0, 0.0, 1.0)   # hot: red
+lut.SetTableValue(4, 1.0, 1.0, 1.0, 1.0)   # very hot: white
+
+fire_mapper.SetLookupTable(lut)
+fire_mapper.SetUseLookupTableScalarRange(True)
+fire_mapper.SetScalarRange(theta_min, theta_max)
 
 # --------------------------------
 # 4. Add a simple domain outline
