@@ -118,7 +118,7 @@ def make_iso_actor(grid, theta_name, iso_value, color, opacity):
 # ------------------------------------
 # Create a color lookup table for the contour mapper so we can show a colorbar
 fire_lut = vtk.vtkLookupTable()
-fire_lut.SetNumberOfTableValues(4)
+fire_lut.SetNumberOfTableValues(5)
 fire_lut.SetRange(low, very_hi)
 fire_lut.Build()
 
@@ -126,8 +126,9 @@ fire_lut.Build()
 fire_colors = [
     (0.7, 0.7, 0.7),  # light gray
     (0.5, 0.5, 0.5),  # dark gray
-    (1.0, 0.15, 0.0),  # orange-red
-    (1.0, 0.6, 0.05),  # yellow
+    (1.0, 0.15, 0.0),  # red
+    (1.0, 0.57, 0.05),  # orange
+    (1.0, 0.85, 0.0),  # yellow
 ]
 
 for i, color in enumerate(fire_colors):
@@ -236,12 +237,13 @@ renderer.AddViewProp(scalar_bar)
 temp_scalar_bar = vtk.vtkScalarBarActor()
 temp_scalar_bar.SetLookupTable(fire_lut)
 temp_scalar_bar.SetTitle("Temperature")
-temp_scalar_bar.SetNumberOfLabels(4)
+temp_scalar_bar.SetNumberOfLabels(5)
 temp_scalar_bar.SetOrientationToVertical()
 temp_scalar_bar.SetPosition(0.12, 0.1)
 temp_scalar_bar.SetWidth(0.08)
 temp_scalar_bar.SetHeight(0.8)
 temp_scalar_bar.UnconstrainedFontSizeOn()
+temp_scalar_bar.SetLabelFormat("%.1f")
 
 # Increase font sizes for better readability
 title_prop = temp_scalar_bar.GetTitleTextProperty()
