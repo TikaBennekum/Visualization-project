@@ -18,7 +18,7 @@ grid = reader.GetOutput()
 
 print("Loaded:", grid.GetClassName())
 
-# Name of the scalar field that represents potential temperature
+# Name of the scalar field that represents vegetation
 rhof_1_name = "rhof_1"
 rhof_1 = grid.GetPointData().GetArray("rhof_1")
 
@@ -36,8 +36,7 @@ contour.SetInputArrayToProcess(
     rhof_1_name,
 )
 
-# A few isovalues in the flame range.
-# You can tweak or add/remove values as you like.
+# A few isovalues in the vegetation range.
 rhof_1_min, rhof_1_max = rhof_1.GetRange()
 
 isovalues = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
@@ -55,6 +54,37 @@ fire_mapper.SetInputConnection(contour.GetOutputPort())
 fire_mapper.SetScalarModeToUsePointFieldData()
 fire_mapper.SelectColorArray(rhof_1_name)
 fire_mapper.SetScalarRange(0, 0.6)  # color range restricted to vegetation
+
+# Create a green lookup table for the contour mapper so we can show a colorbar
+lut = vtk.vtkLookupTable()
+num_entries = 256
+lut.SetNumberOfTableValues(num_entries)
+lut.Build()
+# Ensure the LUT covers the actual scalar range in the data (not just 0..1)
+try:
+    lut.SetRange(rhof_1_min, rhof_1_max)
+except Exception:
+    lut.SetRange(0.0, 0.6)
+for i in range(num_entries):
+    t = float(i) / (num_entries - 1)
+    # Dark -> bright green -> yellow/white ramp (three-point interpolation)
+    if t < 0.5:
+        # interpolate from dark green to bright green
+        u = t / 0.5
+        r = (0.0 * (1 - u)) + (0.2 * u)
+        g = (0.15 * (1 - u)) + (0.9 * u)
+        b = (0.0 * (1 - u)) + (0.15 * u)
+    else:
+        # interpolate from bright green to yellowish/white
+        u = (t - 0.5) / 0.5
+        r = (0.2 * (1 - u)) + (1.0 * u)
+        g = (0.9 * (1 - u)) + (1.0 * u)
+        b = (0.15 * (1 - u)) + (0.9 * u)
+    lut.SetTableValue(i, r, g, b, 1.0)
+
+fire_mapper.SetLookupTable(lut)
+fire_mapper.SetUseLookupTableScalarRange(True)
+fire_mapper.ScalarVisibilityOn()
 
 fire_actor = vtk.vtkActor()
 fire_actor.SetMapper(fire_mapper)
@@ -78,6 +108,17 @@ outline_actor.GetProperty().SetColor(1.0, 1.0, 1.0)  # white outline
 renderer = vtk.vtkRenderer()
 renderer.AddActor(fire_actor)
 renderer.AddActor(outline_actor)
+# Add a scalar bar (color legend) for vegetation
+scalar_bar = vtk.vtkScalarBarActor()
+scalar_bar.SetLookupTable(lut)
+scalar_bar.SetTitle("Vegetation density")
+scalar_bar.SetNumberOfLabels(5)
+scalar_bar.SetOrientationToVertical()
+scalar_bar.SetPosition(0.88, 0.1)
+scalar_bar.SetWidth(0.08)
+scalar_bar.SetHeight(0.8)
+# Add as a view prop to avoid deprecated AddActor2D
+renderer.AddViewProp(scalar_bar)
 renderer.SetBackground(0.1, 0.1, 0.15)
 
 render_window = vtk.vtkRenderWindow()
