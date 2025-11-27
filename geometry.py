@@ -11,7 +11,7 @@ import vtk
 
 
 def make_outline_actor(grid):
-    """ set up of a basic enviroment by setting up a simple domain outline. """
+    """set up of a basic enviroment by setting up a simple domain outline."""
     outline_filter = vtk.vtkStructuredGridOutlineFilter()
     outline_filter.SetInputData(grid)
 

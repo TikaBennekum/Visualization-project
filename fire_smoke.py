@@ -11,7 +11,7 @@ import vtk
 
 
 def make_iso_actor(grid, theta_name, iso_value, color, opacity):
-    """ Makes iso actor. """
+    """Makes iso actor."""
     contour = vtk.vtkContourFilter()
     contour.SetInputData(grid)
     contour.SetInputArrayToProcess(
@@ -39,8 +39,8 @@ def make_iso_actor(grid, theta_name, iso_value, color, opacity):
 
 
 def compute_fire_levels(theta_min):
-    """ Defines at which level smoke is shown and at which level 
-    fire is shown. """
+    """Defines at which level smoke is shown and at which level
+    fire is shown."""
     low = theta_min + 2.0  # smoke (cool)
     mid = theta_min + 4.0  # smoke (warmer)
     hi = theta_min + 5.5  # fire (hot)
@@ -50,7 +50,7 @@ def compute_fire_levels(theta_min):
 
 
 def make_fire_smoke_actors(grid, theta_name, theta_min):
-    """ Creates fire and smoke actors. """
+    """Creates fire and smoke actors."""
     low, mid, hi, higher, very_hi = compute_fire_levels(theta_min)
 
     smoke_low = make_iso_actor(
@@ -77,7 +77,7 @@ def make_fire_smoke_actors(grid, theta_name, theta_min):
 
 
 def make_temperature_lut(low, very_hi):
-    """ Creates visualization of fire and smoke. """
+    """Creates visualization of fire and smoke."""
     lut = vtk.vtkLookupTable()
     lut.SetNumberOfTableValues(5)
     lut.SetRange(low, very_hi)
@@ -96,7 +96,7 @@ def make_temperature_lut(low, very_hi):
 
 
 def make_temperature_scalar_bar(lut):
-    """ Makes scalar bar showing levels of temperature. """
+    """Makes scalar bar showing levels of temperature."""
     scalar_bar = vtk.vtkScalarBarActor()
     scalar_bar.SetLookupTable(lut)
     scalar_bar.SetTitle("Temperature")
