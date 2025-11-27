@@ -5,8 +5,7 @@ Student 13392425, 15884392
 
 File description:
     This is the main file.
-    Here we create a dynamic visualization of a wildfire by using
-    functions from other files.
+    Here we create a dynamic visualization of a wildfire using VTK.
 """
 
 #!/usr/bin/env vtkpython
@@ -33,8 +32,7 @@ theta_name = "theta"
 theta = grid.GetPointData().GetArray(theta_name)
 theta_min, theta_max = theta.GetRange()
 
-# Initializes rendering and set up of a basic enviroment
-# by setting up a simple domain outline
+# Initializes rendering
 renderer = make_renderer()
 outline_actor = make_outline_actor(grid)
 renderer.AddActor(outline_actor)

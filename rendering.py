@@ -4,19 +4,21 @@ Names: Tika van Bennekum, Anezka Potesilova
 Student 13392425, 15884392
 
 File description:
-    ...
+    Rendering of the scene of the visualization.
 """
 
 import vtk
 
 
 def make_renderer(background=(0.1, 0.1, 0.15)):
+    """ Initiliazes rendering. """
     renderer = vtk.vtkRenderer()
     renderer.SetBackground(*background)
     return renderer
 
 
 def setup_camera(renderer):
+    """ Creates the angle at which we view the grid. """
     camera = renderer.GetActiveCamera()
     camera.SetPosition(1166.9393086976156, -2348.8726187497973, 2780.6186615624197)
     camera.SetFocalPoint(101.0, -1.0, 449.6810739215296)
@@ -25,6 +27,7 @@ def setup_camera(renderer):
 
 
 def make_window_and_interactor(renderer, size=(900, 700)):
+    """ Makes window and interactor. """
     render_window = vtk.vtkRenderWindow()
     render_window.AddRenderer(renderer)
     render_window.SetSize(*size)

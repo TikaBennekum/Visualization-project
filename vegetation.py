@@ -4,13 +4,14 @@ Names: Tika van Bennekum, Anezka Potesilova
 Student 13392425, 15884392
 
 File description:
-    ...
+    Here the visualization of vegetation is generated.
 """
 
 import vtk
 
 
 def make_vegetation_actor(grid, rhof_1_name="rhof_1", isovalues=None):
+    """ Generates vegetation actors. """
     if isovalues is None:
         isovalues = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
 
@@ -55,6 +56,7 @@ def make_vegetation_actor(grid, rhof_1_name="rhof_1", isovalues=None):
 
 
 def make_vegetation_scalar_bar(lut):
+    """ Makes scalar bar showing levels of fuel density (vegetation). """
     scalar_bar = vtk.vtkScalarBarActor()
     scalar_bar.SetLookupTable(lut)
     scalar_bar.SetTitle("Vegetation density")

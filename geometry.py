@@ -4,13 +4,14 @@ Names: Tika van Bennekum, Anezka Potesilova
 Student 13392425, 15884392
 
 File description:
-    ...
+    Makes outline actor.
 """
 
 import vtk
 
 
 def make_outline_actor(grid):
+    """ set up of a basic enviroment by setting up a simple domain outline. """
     outline_filter = vtk.vtkStructuredGridOutlineFilter()
     outline_filter.SetInputData(grid)
 
