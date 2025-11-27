@@ -31,7 +31,6 @@ os.makedirs("frames", exist_ok=True)
 # -----------------------
 reader = vtk.vtkXMLGenericDataObjectReader()
 reader.SetFileName(files[0])
-# reader.SetFileName("mountain_backcurve40/output.69000.vts")
 reader.Update()
 
 grid = reader.GetOutput()
@@ -301,7 +300,7 @@ renderer.AddViewProp(temp_scalar_bar)
 
 render_window = vtk.vtkRenderWindow()
 render_window.AddRenderer(renderer)
-render_window.SetSize(900, 700)
+render_window.SetSize(1920, 1080)
 
 interactor = vtk.vtkRenderWindowInteractor()
 interactor.SetRenderWindow(render_window)
@@ -340,8 +339,6 @@ for frame_id, fname in enumerate(files):
     reader.SetFileName(fname)
     reader.Update()
     grid = reader.GetOutput()
-    ext = grid.GetExtent()
-    print(grid.GetClassName(), " -> extent:", ext)
 
     # All contours must use the updated grid:
     veg_contour.SetInputData(grid)
@@ -361,8 +358,3 @@ for frame_id, fname in enumerate(files):
 print("\nDone writing PNG frames!")
 print("To create a video, run:")
 print("ffmpeg -framerate 30 -i frames/frame_%05d.png -pix_fmt yuv420p output.mp4")
-
-
-# render_window.Render()
-# interactor.Initialize()
-# interactor.Start()
