@@ -4,7 +4,7 @@ import vtk
 # -----------------------
 # 1. Read the VTS dataset
 # -----------------------
-filename = "mountain_backcurve40/output.50000.vts"
+filename = "mountain_backcurve40/output.70000.vts"
 
 reader = vtk.vtkXMLGenericDataObjectReader()
 reader.SetFileName(filename)
@@ -179,7 +179,7 @@ fire_actor_very_hi = make_iso_actor(
 )
 
 # --------------------------------
-# 5. Add a simple domain outline
+# 5. Add a simple domain outline and set the bottom of the domain to be black
 # --------------------------------
 outline_filter = vtk.vtkStructuredGridOutlineFilter()
 outline_filter.SetInputData(grid)
@@ -192,20 +192,39 @@ outline_actor.SetMapper(outline_mapper)
 outline_actor.GetProperty().SetColor(1.0, 1.0, 1.0)  # white outline
 outline_actor.GetProperty().SetLineWidth(1.0)
 
+# Colour the ground black
+slice0 = vtk.vtkExtractGrid()
+slice0.SetInputData(grid)
+slice0.SetVOI(0, 850, 0, 499, 0, 0)  # z = 0 -> ground layer
+slice0.Update()
+ground = slice0.GetOutput()
+
+black = vtk.vtkNamedColors().GetColor3d("Black")
+ground_mapper = vtk.vtkDataSetMapper()
+ground_mapper.SetInputData(ground)
+ground_mapper.SetScalarVisibility(False)
+
+ground_actor = vtk.vtkActor()
+ground_actor.SetMapper(ground_mapper)
+ground_actor.GetProperty().SetColor(black)
+
 # ------------------------------
 # 6. Renderer / window / camera
 # ------------------------------
 renderer = vtk.vtkRenderer()
-renderer.SetBackground(0.1, 0.1, 0.15)
+renderer.SetBackground(0.2, 0.2, 0.25)
+renderer.SetBackground2(0.5, 0.5, 0.6)
+renderer.GradientBackgroundOn()
 
 # Add actors in a sensible order (smoke behind fire visually)
+renderer.AddActor(vegetation_actor)
+renderer.AddActor(ground_actor)
 renderer.AddActor(smoke_actor_low)
 renderer.AddActor(smoke_actor_mid)
 renderer.AddActor(fire_actor_hi)
 renderer.AddActor(fire_actor_higher)
 renderer.AddActor(fire_actor_very_hi)
 renderer.AddActor(outline_actor)
-renderer.AddActor(vegetation_actor)
 
 # Add a scalar bar (color legend) for vegetation
 scalar_bar = vtk.vtkScalarBarActor()
