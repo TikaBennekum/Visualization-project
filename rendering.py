@@ -38,6 +38,11 @@ def make_window_and_interactor(renderer, size=(900, 700)):
     renderer.SetMaximumNumberOfPeels(100)
     renderer.SetOcclusionRatio(0.1)
 
+    # background
+    renderer.SetBackground(0.2, 0.2, 0.25)
+    renderer.SetBackground2(0.5, 0.5, 0.6)
+    renderer.GradientBackgroundOn()
+
     interactor = vtk.vtkRenderWindowInteractor()
     interactor.SetRenderWindow(render_window)
 

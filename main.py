@@ -17,7 +17,7 @@ from fire_smoke import (
     make_temperature_lut,
     make_temperature_scalar_bar,
 )
-from geometry import make_outline_actor
+from geometry import make_outline_actor, create_plane
 from rendering import make_renderer, setup_camera, make_window_and_interactor
 
 # Reading the VTS dataset
@@ -52,6 +52,10 @@ vegetation_actor, vegetation_lut = make_vegetation_actor(grid)
 vegetation_bar = make_vegetation_scalar_bar(vegetation_lut)
 renderer.AddActor(vegetation_actor)
 renderer.AddViewProp(vegetation_bar)
+
+# Creates black plane (burnt ground)
+ground_actor = create_plane(grid)
+renderer.AddActor(ground_actor)
 
 # Interactive rendering
 setup_camera(renderer)
