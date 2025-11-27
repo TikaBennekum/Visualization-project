@@ -192,25 +192,6 @@ outline_actor.SetMapper(outline_mapper)
 outline_actor.GetProperty().SetColor(1.0, 1.0, 1.0)  # white outline
 outline_actor.GetProperty().SetLineWidth(1.0)
 
-# # Create a polygon (or plane) covering the entire XY domain
-# plane = vtk.vtkPlaneSource()
-# plane.SetOrigin(-500, -500, 0)  # corner coordinates
-# plane.SetPoint1(700, -500, 0)
-# plane.SetPoint2(-500, 500, 0)
-# plane.SetResolution(1, 1)  # single quad
-# plane.Update()
-
-# plane_mapper = vtk.vtkPolyDataMapper()
-# plane_mapper.SetInputConnection(plane.GetOutputPort())
-
-# plane_actor = vtk.vtkActor()
-# plane_actor.SetMapper(plane_mapper)
-# plane_actor.GetProperty().SetColor(0, 0, 0)  # black
-# plane_actor.GetProperty().SetAmbient(1.0)
-# plane_actor.GetProperty().SetDiffuse(0.0)  # full ambient lighting, no shading
-# plane_actor.GetProperty().SetSpecular(0.0)
-# plane_actor.GetProperty().SetOpacity(1.0)  # fully opaque
-
 # Colour the ground black
 slice0 = vtk.vtkExtractGrid()
 slice0.SetInputData(grid)
@@ -231,11 +212,12 @@ ground_actor.GetProperty().SetColor(black)
 # 6. Renderer / window / camera
 # ------------------------------
 renderer = vtk.vtkRenderer()
-renderer.SetBackground(0.1, 0.1, 0.15)
+renderer.SetBackground(0.2, 0.2, 0.25)
+renderer.SetBackground2(0.5, 0.5, 0.6)
+renderer.GradientBackgroundOn()
 
 # Add actors in a sensible order (smoke behind fire visually)
 renderer.AddActor(vegetation_actor)
-# renderer.AddActor(plane_actor)
 renderer.AddActor(ground_actor)
 renderer.AddActor(smoke_actor_low)
 renderer.AddActor(smoke_actor_mid)
