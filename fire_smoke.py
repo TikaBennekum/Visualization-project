@@ -35,6 +35,11 @@ def make_iso_actor(grid, theta_name, iso_value, color, opacity):
     actor.GetProperty().SetDiffuse(0.8)
     actor.GetProperty().SetAmbient(0.1)
 
+    # Fix transparency rendering
+    prop = actor.GetProperty()
+    prop.BackfaceCullingOff()  # Prevent hiding fire when viewed from behind
+    prop.FrontfaceCullingOff()  # Same for front faces
+
     return actor, contour
 
 

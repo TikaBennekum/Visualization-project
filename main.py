@@ -11,6 +11,7 @@ File description:
 #!/usr/bin/env vtkpython
 import vtk
 
+from animation import create_frames
 from fire_smoke import (
     make_fire_smoke_actors,
     make_temperature_lut,
@@ -62,19 +63,19 @@ renderer.AddActor(ground_actor)
 # Interactive rendering
 setup_camera(renderer)
 render_window, interactor = make_window_and_interactor(renderer)
-render_window.Render()
-interactor.Initialize()
-interactor.Start()
+# render_window.Render()
+# interactor.Initialize()
+# interactor.Start()
 
 # Animation
-# filters = {
-#     "veg": vegetation_contour,
-#     "smoke_low": fire_contours[0],
-#     "smoke_mid": fire_contours[1],
-#     "fire_hi": fire_contours[2],
-#     "fire_higher": fire_contours[3],
-#     "fire_very_hi": fire_contours[4],
-#     "ground": ground_slice,
-# }
+filters = {
+    "veg": vegetation_contour,
+    "smoke_low": fire_contours[0],
+    "smoke_mid": fire_contours[1],
+    "fire_hi": fire_contours[2],
+    "fire_higher": fire_contours[3],
+    "fire_very_hi": fire_contours[4],
+    "ground": ground_slice,
+}
 
-# create_frames(reader, render_window, renderer, filters)
+create_frames(reader, render_window, filters)

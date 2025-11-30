@@ -47,7 +47,7 @@ def create_animation_directory():
     os.makedirs("frames", exist_ok=True)
 
 
-def create_frames(reader, render_window, renderer, filters):
+def create_frames(reader, render_window, filters):
     files = get_all_files()
     w2if, png = setup_frame(render_window)
 
@@ -63,7 +63,6 @@ def create_frames(reader, render_window, renderer, filters):
             f.SetInputData(grid)
             f.Update()
 
-        renderer.ResetCameraClippingRange()
         render_window.Render()
         w2if.Modified()
 
