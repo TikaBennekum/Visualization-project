@@ -49,6 +49,7 @@ def create_animation_directory():
 
 def create_frames(reader, render_window, filters):
     files = get_all_files()
+    create_animation_directory()
     w2if, png = setup_frame(render_window)
 
     for frame_id, fname in enumerate(files):
