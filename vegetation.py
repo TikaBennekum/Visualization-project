@@ -52,7 +52,7 @@ def make_vegetation_actor(grid, rhof_1_name="rhof_1", isovalues=None):
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
 
-    return actor, lut
+    return actor, lut, contour
 
 
 def make_vegetation_scalar_bar(lut):

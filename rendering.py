@@ -14,6 +14,8 @@ def make_renderer(background=(0.1, 0.1, 0.15)):
     """Initiliazes rendering."""
     renderer = vtk.vtkRenderer()
     renderer.SetBackground(*background)
+    renderer.SetMaximumNumberOfPeels(200)
+    renderer.SetOcclusionRatio(0.1)
     return renderer
 
 
@@ -26,7 +28,7 @@ def setup_camera(renderer):
     renderer.ResetCameraClippingRange()
 
 
-def make_window_and_interactor(renderer, size=(900, 700)):
+def make_window_and_interactor(renderer, size=(1920, 1080)):
     """Makes window and interactor."""
     render_window = vtk.vtkRenderWindow()
     render_window.AddRenderer(renderer)
@@ -34,9 +36,7 @@ def make_window_and_interactor(renderer, size=(900, 700)):
 
     # transparency settings
     render_window.SetAlphaBitPlanes(1)
-    renderer.SetUseDepthPeeling(1)
-    renderer.SetMaximumNumberOfPeels(100)
-    renderer.SetOcclusionRatio(0.1)
+    render_window.SetMultiSamples(0)
 
     # background
     renderer.SetBackground(0.2, 0.2, 0.25)

@@ -1,0 +1,73 @@
+"""
+Course: Scientific virtualisation and virtual reality
+Names: Tika van Bennekum, Anezka Potesilova
+Student 13392425, 15884392
+
+File description:
+    Rendering of the scene of the visualization.
+"""
+
+import glob
+import os
+import re
+
+import vtk
+
+
+def setup_frame(render_window):
+    """Sets up the frame for capturing screenshots."""
+    w2if = vtk.vtkWindowToImageFilter()
+    w2if.SetInput(render_window)
+    w2if.ReadFrontBufferOff()
+
+    png = vtk.vtkPNGWriter()
+    png.SetInputConnection(w2if.GetOutputPort())
+
+    return w2if, png
+
+
+def get_all_files(directory="mountain_backcurve40"):
+    """Gets all VTS files in the dataset directory, sorted by time index."""
+    files = sorted(glob.glob(f"{directory}/output.*.vts"))
+
+    def extract_number(path):
+        # Extract the last integer in the filename
+        nums = re.findall(r"\d+", path)
+        return int(nums[-1])  # time index is usually the last number
+
+    files = sorted(glob.glob(f"{directory}/output.*.vts"), key=extract_number)
+
+    print("Found frames:", len(files))
+
+    return files
+
+
+def create_animation_directory():
+    """Creates a directory for storing PNG frames if it doesn't exist."""
+    os.makedirs("frames", exist_ok=True)
+
+
+def create_frames(reader, render_window, filters):
+    files = get_all_files()
+    create_animation_directory()
+    w2if, png = setup_frame(render_window)
+
+    for frame_id, fname in enumerate(files):
+        print(f"Frame {frame_id + 1}/{len(files)} → {fname}")
+
+        reader.SetFileName(fname)
+        reader.Update()
+        grid = reader.GetOutput()
+
+        # Update all filters at once
+        for f in filters.values():
+            f.SetInputData(grid)
+            f.Update()
+
+        render_window.Render()
+        w2if.Modified()
+
+        png.SetFileName(f"frames/frame_{frame_id:05d}.png")
+        png.Write()
+
+    print("\nDone writing PNG frames!")

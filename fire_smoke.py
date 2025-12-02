@@ -35,7 +35,12 @@ def make_iso_actor(grid, theta_name, iso_value, color, opacity):
     actor.GetProperty().SetDiffuse(0.8)
     actor.GetProperty().SetAmbient(0.1)
 
-    return actor
+    # Fix transparency rendering
+    prop = actor.GetProperty()
+    prop.BackfaceCullingOff()  # Prevent hiding fire when viewed from behind
+    prop.FrontfaceCullingOff()  # Same for front faces
+
+    return actor, contour
 
 
 def compute_fire_levels(theta_min):
@@ -53,27 +58,39 @@ def make_fire_smoke_actors(grid, theta_name, theta_min):
     """Creates fire and smoke actors."""
     low, mid, hi, higher, very_hi = compute_fire_levels(theta_min)
 
-    smoke_low = make_iso_actor(
+    smoke_low, smoke_contour_low = make_iso_actor(
         grid, theta_name, low, (0.7, 0.7, 0.7), 0.15
     )  # light gray
-    smoke_mid = make_iso_actor(
+    smoke_mid, smoke_contour_mid = make_iso_actor(
         grid, theta_name, mid, (0.5, 0.5, 0.5), 0.30
     )  # dark grey
-    fire_hi = make_iso_actor(grid, theta_name, hi, (1.0, 0.15, 0.0), 0.60)  # red
-    fire_higher = make_iso_actor(
+    fire_hi, fire_contour_hi = make_iso_actor(
+        grid, theta_name, hi, (1.0, 0.15, 0.0), 0.60
+    )  # red
+    fire_higher, fire_contour_higher = make_iso_actor(
         grid, theta_name, higher, (1.0, 0.57, 0.05), 0.70
     )  # orange
-    fire_very_hi = make_iso_actor(
+    fire_very_hi, fire_contour_very_hi = make_iso_actor(
         grid, theta_name, very_hi, (1.0, 0.85, 0.0), 0.80
     )  # yellow
 
-    return (low, mid, hi, higher, very_hi), [
-        smoke_low,
-        smoke_mid,
-        fire_hi,
-        fire_higher,
-        fire_very_hi,
-    ]
+    return (
+        (low, mid, hi, higher, very_hi),
+        [
+            smoke_low,
+            smoke_mid,
+            fire_hi,
+            fire_higher,
+            fire_very_hi,
+        ],
+        [
+            smoke_contour_low,
+            smoke_contour_mid,
+            fire_contour_hi,
+            fire_contour_higher,
+            fire_contour_very_hi,
+        ],
+    )
 
 
 def make_temperature_lut(low, very_hi):

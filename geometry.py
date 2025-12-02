@@ -25,8 +25,9 @@ def make_outline_actor(grid):
 
     return actor
 
+
 def create_plane(grid):
-    """ Creates black grid underneath forest that represents the burnt ground when all vegetation is gone. """
+    """Creates black grid underneath forest that represents the burnt ground when all vegetation is gone."""
     # Colour the ground black
     slice0 = vtk.vtkExtractGrid()
     slice0.SetInputData(grid)
@@ -43,4 +44,4 @@ def create_plane(grid):
     ground_actor.SetMapper(ground_mapper)
     ground_actor.GetProperty().SetColor(black)
 
-    return ground_actor
+    return ground_actor, slice0
