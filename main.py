@@ -18,11 +18,16 @@ from fire_smoke import (
     make_temperature_scalar_bar,
 )
 from geometry import create_plane, make_outline_actor
+from labels import make_timestep_text, make_title
 from rendering import make_renderer, make_window_and_interactor, setup_camera
 from vegetation import make_vegetation_actor, make_vegetation_scalar_bar
 
+TERRAIN_TYPE = "valley"  # "mountain" or "valley"
+FIRE_TYPE = "backcurve"  # "backcurve" or "headcurve" -- only used for mountain
+CURVATURE = 40  # curvature value for mountain simulations -- 40, 80, or 320 -- only used for mountain
+
 # Reading the VTS dataset
-filename = "mountain_backcurve40/output.10000.vts"
+filename = f"{TERRAIN_TYPE}_{FIRE_TYPE}{CURVATURE}/output.1000.vts"
 reader = vtk.vtkXMLGenericDataObjectReader()
 reader.SetFileName(filename)
 reader.Update()
@@ -37,6 +42,15 @@ theta_min, theta_max = theta.GetRange()
 renderer = make_renderer()
 outline_actor = make_outline_actor(grid)
 renderer.AddActor(outline_actor)
+
+# Adds title
+title, subtitle = make_title(TERRAIN_TYPE, fire_type=FIRE_TYPE, curvature=CURVATURE)
+renderer.AddViewProp(title)
+renderer.AddViewProp(subtitle)
+
+# Adds timestep text
+timestamp_actor = make_timestep_text()
+renderer.AddViewProp(timestamp_actor)
 
 # Adds fire and smoke to the visualization
 (levels, fire_smoke_actors, fire_contours) = make_fire_smoke_actors(
@@ -78,4 +92,4 @@ filters = {
     "ground": ground_slice,
 }
 
-create_frames(reader, render_window, filters)
+create_frames(reader, render_window, filters, timestamp_actor)
