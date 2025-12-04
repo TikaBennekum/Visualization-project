@@ -28,11 +28,12 @@ def setup_frame(render_window):
     return w2if, png
 
 
-def get_all_files(directory="mountain_backcurve40"):
+def get_all_files(directory):
     """Gets all VTS files in the dataset directory, sorted by time index."""
-    files = sorted(glob.glob(f"{directory}/output.*.vts"))
-
-    files = sorted(glob.glob(f"{directory}/output.*.vts"), key=extract_number)
+    files = sorted(
+        glob.glob(f"{directory}/output.*.vts"),
+        key=extract_number,
+    )
 
     print("Found frames:", len(files))
 
@@ -50,8 +51,7 @@ def create_animation_directory():
     os.makedirs("frames", exist_ok=True)
 
 
-def create_frames(reader, render_window, filters, timestamp_actor):
-    files = get_all_files()
+def create_frames(reader, render_window, filters, timestamp_actor, files):
     create_animation_directory()
     w2if, png = setup_frame(render_window)
 

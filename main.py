@@ -11,7 +11,7 @@ File description:
 #!/usr/bin/env vtkpython
 import vtk
 
-from animation import create_frames
+from animation import create_frames, get_all_files
 from fire_smoke import (
     make_fire_smoke_actors,
     make_temperature_lut,
@@ -28,9 +28,12 @@ CURVATURE = 40  # curvature value for mountain simulations -- 40, 80, or 320 -- 
 
 # Reading the VTS dataset
 if TERRAIN_TYPE == "valley":
-    filename = f"{TERRAIN_TYPE}/output.1000.vts"
+    directory = f"{TERRAIN_TYPE}"
 else:
-    filename = f"{TERRAIN_TYPE}_{FIRE_TYPE}{CURVATURE}/output.1000.vts"
+    directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}{CURVATURE}"
+
+filename = f"{directory}/output.1000.vts"
+
 
 reader = vtk.vtkXMLGenericDataObjectReader()
 reader.SetFileName(filename)
@@ -96,4 +99,6 @@ filters = {
     "ground": ground_slice,
 }
 
-create_frames(reader, render_window, filters, timestamp_actor)
+files = get_all_files(directory)
+
+create_frames(reader, render_window, filters, timestamp_actor, files)
