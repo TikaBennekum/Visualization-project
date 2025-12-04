@@ -74,7 +74,6 @@ renderer.AddViewProp(temp_bar)
 
 # Adds general wind arrow
 mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
-# mean_u, mean_v, mean_w = -20, 10, 10
 wind_actor, wind_transform, wind_tf_filter = make_wind_arrow(mean_u, mean_v, mean_w)
 renderer.AddActor(wind_actor)
 
