@@ -11,7 +11,6 @@ File description:
 #!/usr/bin/env vtkpython
 import vtk
 
-from animation import create_frames, get_all_files
 from fire_smoke import (
     make_fire_smoke_actors,
     make_temperature_lut,
@@ -21,6 +20,7 @@ from geometry import create_plane, make_outline_actor
 from labels import make_timestep_text, make_title
 from rendering import make_renderer, make_window_and_interactor, setup_camera
 from vegetation import make_vegetation_actor, make_vegetation_scalar_bar
+from wind import compute_mean_wind_direction, make_wind_arrow
 
 TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
 FIRE_TYPE = "backcurve"  # "backcurve" or "headcurve" -- only used for mountain
@@ -71,6 +71,15 @@ for actor in fire_smoke_actors:
     renderer.AddActor(actor)
 renderer.AddViewProp(temp_bar)
 
+# Adds general wind arrow
+u_array = grid.GetPointData().GetArray("u")
+v_array = grid.GetPointData().GetArray("v")
+w_array = grid.GetPointData().GetArray("w")
+
+mean_u, mean_v, mean_w = compute_mean_wind_direction(u_array, v_array, w_array)
+wind_actor = make_wind_arrow(mean_u, mean_v, mean_w)
+renderer.AddActor(wind_actor)
+
 # Adds vegetation to the visualization
 vegetation_actor, vegetation_lut, vegetation_contour = make_vegetation_actor(grid)
 vegetation_bar = make_vegetation_scalar_bar(vegetation_lut)
@@ -84,21 +93,21 @@ renderer.AddActor(ground_actor)
 # Interactive rendering
 setup_camera(renderer)
 render_window, interactor = make_window_and_interactor(renderer)
-# render_window.Render()
-# interactor.Initialize()
-# interactor.Start()
+render_window.Render()
+interactor.Initialize()
+interactor.Start()
 
 # Animation
-filters = {
-    "veg": vegetation_contour,
-    "smoke_low": fire_contours[0],
-    "smoke_mid": fire_contours[1],
-    "fire_hi": fire_contours[2],
-    "fire_higher": fire_contours[3],
-    "fire_very_hi": fire_contours[4],
-    "ground": ground_slice,
-}
+# filters = {
+#     "veg": vegetation_contour,
+#     "smoke_low": fire_contours[0],
+#     "smoke_mid": fire_contours[1],
+#     "fire_hi": fire_contours[2],
+#     "fire_higher": fire_contours[3],
+#     "fire_very_hi": fire_contours[4],
+#     "ground": ground_slice,
+# }
 
-files = get_all_files(directory)
+# files = get_all_files(directory)
 
-create_frames(reader, render_window, filters, timestamp_actor, files)
+# create_frames(reader, render_window, filters, timestamp_actor, files)
