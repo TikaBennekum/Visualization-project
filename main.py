@@ -11,7 +11,7 @@ File description:
 #!/usr/bin/env vtkpython
 import vtk
 
-from animation import create_frames, get_all_files
+from animation import get_all_files
 from fire_smoke import (
     make_fire_smoke_actors,
     make_temperature_lut,
@@ -21,7 +21,7 @@ from geometry import create_plane, make_outline_actor
 from labels import make_timestep_text, make_title
 from rendering import make_renderer, make_window_and_interactor, setup_camera
 from vegetation import make_vegetation_actor, make_vegetation_scalar_bar
-from wind import compute_mean_wind_direction, make_wind_arrow
+from wind import make_wind_arrow
 
 TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
 FIRE_TYPE = "backcurve"  # "backcurve" or "headcurve" -- only used for mountain
@@ -73,7 +73,8 @@ for actor in fire_smoke_actors:
 renderer.AddViewProp(temp_bar)
 
 # Adds general wind arrow
-mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
+# mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
+mean_u, mean_v, mean_w = 20, -10, 10
 wind_actor, wind_transform, wind_tf_filter = make_wind_arrow(mean_u, mean_v, mean_w)
 renderer.AddActor(wind_actor)
 
@@ -90,9 +91,9 @@ renderer.AddActor(ground_actor)
 # Interactive rendering
 setup_camera(renderer)
 render_window, interactor = make_window_and_interactor(renderer)
-# render_window.Render()
-# interactor.Initialize()
-# interactor.Start()
+render_window.Render()
+interactor.Initialize()
+interactor.Start()
 
 # Animation
 filters = {
@@ -107,11 +108,11 @@ filters = {
 
 files = get_all_files(directory)
 
-create_frames(
-    reader,
-    render_window,
-    filters,
-    timestamp_actor,
-    (wind_transform, wind_tf_filter),
-    files,
-)
+# create_frames(
+#     reader,
+#     render_window,
+#     filters,
+#     timestamp_actor,
+#     (wind_transform, wind_tf_filter),
+#     files,
+# )
