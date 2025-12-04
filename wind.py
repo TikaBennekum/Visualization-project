@@ -128,3 +128,114 @@ def update_wind_arrow(wind, mean_u, mean_v, mean_w, scale=200.0):
     tf_filter.Update()
 
     return wind_actor
+
+
+def make_wind_streamlines(
+    grid,
+    num_seeds=10,
+    tube_radius=1.0,
+    color=(0.2, 0.8, 1.0),
+    seed_height_factor=0.1,  # fraction above z_min
+):
+    """
+    Create streamlines along the top-left side of the domain slightly above the ground.
+    Returns (actor, tracer, calculator, tube_filter).
+    """
+
+    # 1) Build vector array 'velocity' from u,v,w
+    calc = vtk.vtkArrayCalculator()
+    calc.SetInputData(grid)
+    calc.AddScalarVariable("u", "u")
+    calc.AddScalarVariable("v", "v")
+    calc.AddScalarVariable("w", "w")
+    calc.SetFunction("u*iHat + v*jHat + w*kHat")
+    calc.SetResultArrayName("velocity")
+    calc.Update()
+
+    # 2) Get grid bounds
+    bounds = grid.GetBounds()
+    x_min, x_max, y_min, y_max, z_min, z_max = bounds
+
+    # Place seeds along a horizontal line at the top-left corner (x_min, y_max)
+    seed_z = z_min + seed_height_factor * (z_max - z_min)  # slightly above ground
+    x_positions = np.linspace(x_min, x_min, num_seeds)  # constant x (left)
+    y_positions = np.linspace(y_min, y_max, num_seeds)  # spread along y
+    z_positions = np.full(num_seeds, seed_z)
+
+    seeds = vtk.vtkPoints()
+    for xi, yi, zi in zip(x_positions, y_positions, z_positions):
+        seeds.InsertNextPoint(xi, yi, zi)
+
+    seed_poly = vtk.vtkPolyData()
+    seed_poly.SetPoints(seeds)
+
+    # 3) Stream tracer
+    rk4 = vtk.vtkRungeKutta4()
+    tracer = vtk.vtkStreamTracer()
+    tracer.SetInputConnection(calc.GetOutputPort())
+    tracer.SetSourceData(seed_poly)
+    tracer.SetIntegrator(rk4)
+    tracer.SetIntegrationDirectionToForward()
+    tracer.SetMaximumPropagation(max(x_max - x_min, y_max - y_min, z_max - z_min) * 4.0)
+    tracer.SetInitialIntegrationStep(0.5)
+    tracer.SetMinimumIntegrationStep(0.01)
+    tracer.SetComputeVorticity(False)
+    tracer.SetInputArrayToProcess(
+        0, 0, 0, vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS, "velocity"
+    )
+    tracer.Update()
+
+    # 4) Tube filter for better visualization
+    tube = vtk.vtkTubeFilter()
+    tube.SetInputConnection(tracer.GetOutputPort())
+    tube.SetNumberOfSides(8)
+    tube.SetRadius(tube_radius)
+    tube.CappingOn()
+    tube.Update()
+
+    # 5) Mapper + actor
+    mapper = vtk.vtkPolyDataMapper()
+    mapper.SetInputConnection(tube.GetOutputPort())
+    mapper.SetScalarModeToUsePointFieldData()
+    mapper.SelectColorArray("velocity")
+
+    actor = vtk.vtkActor()
+    actor.SetMapper(mapper)
+    actor.GetProperty().SetColor(*color)
+    actor.GetProperty().SetOpacity(0.9)
+
+    return actor, tracer, calc, tube
+
+
+def update_wind_streamlines(stream_tuple, grid):
+    """Update the streamlines pipeline when a new `grid` is available.
+
+    stream_tuple should be the (actor, tracer, calculator, tube_filter) returned
+    by `make_wind_streamlines`.
+    """
+    if stream_tuple is None:
+        return None
+    actor, tracer, calc, tube = stream_tuple
+    if calc is None or tracer is None:
+        return actor
+    try:
+        # Replace calculator input and re-run the pipeline
+        if hasattr(calc, "SetInputData"):
+            calc.SetInputData(grid)
+        else:
+            # try connection-based
+            tp = vtk.vtkTrivialProducer()
+            tp.SetOutput(grid)
+            if hasattr(calc, "SetInputConnection"):
+                calc.SetInputConnection(tp.GetOutputPort())
+        calc.Modified()
+        calc.Update()
+
+        tracer.Modified()
+        tracer.Update()
+
+        tube.Modified()
+        tube.Update()
+    except Exception:
+        pass
+    return actor
