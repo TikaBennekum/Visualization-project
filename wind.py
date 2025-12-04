@@ -2,10 +2,14 @@ import numpy as np
 import vtk
 
 
-def compute_mean_wind_direction(u_array, v_array, w_array):
+def compute_mean_wind_direction(grid):
     """
     Compute average horizontal wind direction from u,v components.
     """
+    u_array = grid.GetPointData().GetArray("u")
+    v_array = grid.GetPointData().GetArray("v")
+    w_array = grid.GetPointData().GetArray("w")
+
     mean_u = np.nanmean(u_array)
     mean_v = np.nanmean(v_array)
     mean_w = np.nanmean(w_array)
@@ -67,4 +71,40 @@ def make_wind_arrow(
     actor.SetMapper(mapper)
     actor.GetProperty().SetColor(*color)
 
-    return actor
+    return actor, transform, tf
+
+
+def update_wind_arrow(
+    wind, mean_u, mean_v, mean_w, start_pos=(-2, 2, 3), scale=20.0, color=(1, 1, 1)
+):
+    """
+    Updates the wind arrow actor to point in the direction of the new mean wind vector.
+    """
+    transform, tf_filter = wind
+
+    vec = np.array([mean_u, mean_v, mean_w])
+    mag = np.linalg.norm(vec)
+    if mag < 1e-6:
+        vec = np.array([1.0, 0.0, 0.0])
+        mag = 1.0
+    vec_normalized = vec / mag
+
+    # Reset the transform
+    transform.Identity()
+
+    # Compute rotation
+    x_axis = np.array([1.0, 0.0, 0.0])
+    axis = np.cross(x_axis, vec_normalized)
+    axis_mag = np.linalg.norm(axis)
+    if axis_mag > 1e-6:
+        axis /= axis_mag
+        angle = np.degrees(np.arccos(np.dot(x_axis, vec_normalized)))
+        transform.RotateWXYZ(angle, *axis)
+
+    # Scale and translate
+    transform.Scale(mag * scale, mag * scale, mag * scale)
+    transform.Translate(start_pos)
+
+    # Update the filter
+    tf_filter.SetTransform(transform)
+    tf_filter.Update()

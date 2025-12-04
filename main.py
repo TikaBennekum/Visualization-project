@@ -11,6 +11,7 @@ File description:
 #!/usr/bin/env vtkpython
 import vtk
 
+from animation import create_frames, get_all_files
 from fire_smoke import (
     make_fire_smoke_actors,
     make_temperature_lut,
@@ -72,12 +73,8 @@ for actor in fire_smoke_actors:
 renderer.AddViewProp(temp_bar)
 
 # Adds general wind arrow
-u_array = grid.GetPointData().GetArray("u")
-v_array = grid.GetPointData().GetArray("v")
-w_array = grid.GetPointData().GetArray("w")
-
-mean_u, mean_v, mean_w = compute_mean_wind_direction(u_array, v_array, w_array)
-wind_actor = make_wind_arrow(mean_u, mean_v, mean_w)
+mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
+wind_actor, wind_transform, wind_tf_filter = make_wind_arrow(mean_u, mean_v, mean_w)
 renderer.AddActor(wind_actor)
 
 # Adds vegetation to the visualization
@@ -93,21 +90,28 @@ renderer.AddActor(ground_actor)
 # Interactive rendering
 setup_camera(renderer)
 render_window, interactor = make_window_and_interactor(renderer)
-render_window.Render()
-interactor.Initialize()
-interactor.Start()
+# render_window.Render()
+# interactor.Initialize()
+# interactor.Start()
 
 # Animation
-# filters = {
-#     "veg": vegetation_contour,
-#     "smoke_low": fire_contours[0],
-#     "smoke_mid": fire_contours[1],
-#     "fire_hi": fire_contours[2],
-#     "fire_higher": fire_contours[3],
-#     "fire_very_hi": fire_contours[4],
-#     "ground": ground_slice,
-# }
+filters = {
+    "veg": vegetation_contour,
+    "smoke_low": fire_contours[0],
+    "smoke_mid": fire_contours[1],
+    "fire_hi": fire_contours[2],
+    "fire_higher": fire_contours[3],
+    "fire_very_hi": fire_contours[4],
+    "ground": ground_slice,
+}
 
-# files = get_all_files(directory)
+files = get_all_files(directory)
 
-# create_frames(reader, render_window, filters, timestamp_actor, files)
+create_frames(
+    reader,
+    render_window,
+    filters,
+    timestamp_actor,
+    (wind_transform, wind_tf_filter),
+    files,
+)
