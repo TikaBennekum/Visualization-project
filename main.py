@@ -22,12 +22,16 @@ from labels import make_timestep_text, make_title
 from rendering import make_renderer, make_window_and_interactor, setup_camera
 from vegetation import make_vegetation_actor, make_vegetation_scalar_bar
 
-TERRAIN_TYPE = "valley"  # "mountain" or "valley"
+TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
 FIRE_TYPE = "backcurve"  # "backcurve" or "headcurve" -- only used for mountain
 CURVATURE = 40  # curvature value for mountain simulations -- 40, 80, or 320 -- only used for mountain
 
 # Reading the VTS dataset
-filename = f"{TERRAIN_TYPE}_{FIRE_TYPE}{CURVATURE}/output.1000.vts"
+if TERRAIN_TYPE == "valley":
+    filename = f"{TERRAIN_TYPE}/output.1000.vts"
+else:
+    filename = f"{TERRAIN_TYPE}_{FIRE_TYPE}{CURVATURE}/output.1000.vts"
+
 reader = vtk.vtkXMLGenericDataObjectReader()
 reader.SetFileName(filename)
 reader.Update()
