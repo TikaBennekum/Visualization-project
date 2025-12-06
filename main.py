@@ -124,5 +124,6 @@ create_frames(
     filters,
     timestamp_actor,
     (wind_actor, wind_transform, wind_tf_filter),
+    (stream_actor, stream_tracer, stream_calc, stream_tube),
     files,
 )

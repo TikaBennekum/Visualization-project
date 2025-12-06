@@ -132,7 +132,7 @@ def update_wind_arrow(wind, mean_u, mean_v, mean_w, scale=200.0):
 
 def make_wind_streamlines(
     grid,
-    num_seeds=10,
+    num_seeds=50,
     tube_radius=1.0,
     color=(0.2, 0.8, 1.0),
     seed_height_factor=0.1,  # fraction above z_min
@@ -198,6 +198,18 @@ def make_wind_streamlines(
     mapper.SetInputConnection(tube.GetOutputPort())
     mapper.SetScalarModeToUsePointFieldData()
     mapper.SelectColorArray("velocity")
+
+    # Create grayscale lookup table
+    lut = vtk.vtkLookupTable()
+    lut.SetNumberOfTableValues(256)
+    lut.Build()
+
+    for i in range(256):
+        gray = i / 255.0
+        lut.SetTableValue(i, gray, gray, gray, 1.0)  # r,g,b,a
+
+    mapper.SetLookupTable(lut)
+    mapper.SetUseLookupTableScalarRange(True)
 
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
