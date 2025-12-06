@@ -27,7 +27,7 @@ from wind import (
     make_wind_streamlines,
 )
 
-TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
+TERRAIN_TYPE = "valley"  # "mountain" or "valley"
 FIRE_TYPE = "backcurve"  # "backcurve" or "headcurve" -- only used for mountain
 CURVATURE = 40  # curvature value for mountain simulations -- 40, 80, or 320 -- only used for mountain
 
@@ -83,7 +83,7 @@ renderer.AddActor(wind_actor)
 
 # Adds wind streamlines (detailed flow visualization)
 stream_actor, stream_tracer, stream_calc, stream_tube = make_wind_streamlines(
-    grid, num_seeds=50, tube_radius=1.0
+    grid, num_seeds=50, tube_radius=1.0, terrain=TERRAIN_TYPE
 )
 if stream_actor is not None:
     renderer.AddActor(stream_actor)
