@@ -51,6 +51,7 @@ def make_vegetation_actor(grid, rhof_1_name="rhof_1", isovalues=None):
 
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
+    # actor.GetProperty().SetOpacity(0.95)
 
     return actor, lut, contour
 

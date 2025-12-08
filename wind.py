@@ -217,7 +217,7 @@ def make_wind_streamlines(
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     # actor.GetProperty().SetColor(*color)
-    actor.GetProperty().SetOpacity(0.9)
+    actor.GetProperty().SetOpacity(0.5)
 
     return actor, tracer, calc, tube
 

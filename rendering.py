@@ -14,7 +14,7 @@ def make_renderer(background=(0.1, 0.1, 0.15)):
     """Initiliazes rendering."""
     renderer = vtk.vtkRenderer()
     renderer.SetBackground(*background)
-    # renderer.SetUseDepthPeeling(1)
+    renderer.SetUseDepthPeeling(1)
     renderer.SetMaximumNumberOfPeels(200)
     renderer.SetOcclusionRatio(0.1)
     return renderer
@@ -23,7 +23,7 @@ def make_renderer(background=(0.1, 0.1, 0.15)):
 def setup_camera(renderer):
     """Creates the angle at which we view the grid."""
     camera = renderer.GetActiveCamera()
-    camera.SetPosition(1166, -2348, 2780)
+    camera.SetPosition(1180, -2348, 2780)
     camera.SetFocalPoint(101.0, -1.0, 449)
     camera.SetViewUp(-0.269, 0.614, 0.742)
     renderer.ResetCameraClippingRange()
