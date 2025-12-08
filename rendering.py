@@ -14,8 +14,8 @@ def make_renderer(background=(0.1, 0.1, 0.15)):
     """Initiliazes rendering."""
     renderer = vtk.vtkRenderer()
     renderer.SetBackground(*background)
-    # renderer.SetUseDepthPeeling(1)
-    renderer.SetMaximumNumberOfPeels(200)
+    renderer.SetUseDepthPeeling(1)
+    renderer.SetMaximumNumberOfPeels(50)
     renderer.SetOcclusionRatio(0.1)
     return renderer
 

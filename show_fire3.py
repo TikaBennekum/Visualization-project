@@ -27,6 +27,7 @@ from wind import (
 )
 
 # --- 1. CONFIGURATION ---
+STATIC_TIMESTEP = 10000
 
 # Define the viewports for a 2x4 grid (8 slots total: 7 sims + 1 legend)
 VIEWPORTS = [
@@ -100,7 +101,7 @@ for i, params in enumerate(SIMULATION_PARAMS):
         directory = f"{params['terrain']}"
     else:
         directory = f"{params['terrain']}_{params['fire']}{params['curvature']}"
-    filename = f"{directory}/output.10000.vts"
+    filename = f"{directory}/output.{STATIC_TIMESTEP}.vts"
 
     # Reading the VTS dataset
     reader = vtk.vtkXMLGenericDataObjectReader()
@@ -123,14 +124,26 @@ for i, params in enumerate(SIMULATION_PARAMS):
     theta_min, theta_max = theta.GetRange()
 
     # Title/Subtitle (Title is now the unique Sim name)
-    _, subtitle = make_title(
+    subtitle = make_title(
         params["terrain"], fire_type=params["fire"], curvature=params["curvature"]
     )
     renderer.AddViewProp(subtitle)
 
     # Timestep text (unique to each view)
-    timestamp_actor = make_timestep_text()
+    timestamp_actor = make_timestep_text(STATIC_TIMESTEP)
     renderer.AddViewProp(timestamp_actor)
+
+    # Vegetation Actor (and creating global LUTs)
+    vegetation_actor, vegetation_lut, _ = make_vegetation_actor(grid)
+
+    if global_veg_lut is None:
+        global_veg_lut = vegetation_lut
+
+    renderer.AddActor(vegetation_actor)
+
+    # Ground Plane
+    ground_actor, _ = create_plane(grid)
+    renderer.AddActor(ground_actor)
 
     # Fire and Smoke Actors (and creating global LUTs)
     (levels, fire_smoke_actors, fire_contours) = make_fire_smoke_actors(
@@ -157,18 +170,6 @@ for i, params in enumerate(SIMULATION_PARAMS):
     )
     if stream_actor is not None:
         renderer.AddActor(stream_actor)
-
-    # Vegetation Actor (and creating global LUTs)
-    vegetation_actor, vegetation_lut, _ = make_vegetation_actor(grid)
-
-    if global_veg_lut is None:
-        global_veg_lut = vegetation_lut
-
-    renderer.AddActor(vegetation_actor)
-
-    # Ground Plane
-    ground_actor, _ = create_plane(grid)
-    renderer.AddActor(ground_actor)
 
     # Set up camera for this renderer (will be synchronized later)
     setup_camera(renderer)
