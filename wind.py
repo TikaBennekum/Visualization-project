@@ -136,6 +136,7 @@ def make_wind_streamlines(
     tube_radius=1.0,
     color=(0.2, 0.8, 1.0),
     seed_height_factor=0.1,  # fraction above z_min
+    terrain="mountain",
 ):
     """
     Create streamlines along the top-left side of the domain slightly above the ground.
@@ -157,7 +158,10 @@ def make_wind_streamlines(
     x_min, x_max, y_min, y_max, z_min, z_max = bounds
 
     # Place seeds along a horizontal line at the top-left corner (x_min, y_max)
-    seed_z = z_min + seed_height_factor * (z_max - z_min)  # slightly above ground
+    if terrain == "valley":
+        seed_z = z_min + 0.15 * (z_max - z_min) * 0.5  # mid-height
+    else:
+        seed_z = z_min + 0.1 * (z_max - z_min)  # slightly above ground
     x_positions = np.linspace(x_min, x_min, num_seeds)  # constant x (left)
     y_positions = np.linspace(y_min, y_max, num_seeds)  # spread along y
     z_positions = np.full(num_seeds, seed_z)
