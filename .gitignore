@@ -5,6 +5,11 @@ output.70000.vts
 
 .DS_Store
 mountain_backcurve40/
+mountain_backcurve80/
+mountain_backcurve320/
+mountain_headcurve40/
+mountain_headcurve80/
+mountain_headcurve320/
 valley/
 vtk_env/
 frames/

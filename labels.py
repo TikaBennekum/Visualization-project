@@ -11,19 +11,6 @@ def make_title(
     curvature=None,
 ):
     """Creates a static title actor for all frames."""
-    title = vtk.vtkTextActor()
-    title.SetInput("Fire Spread Simulation")
-
-    tp = title.GetTextProperty()
-    tp.SetFontSize(32)
-    tp.SetBold(True)
-    tp.SetColor(1, 1, 1)
-    tp.SetFontFamilyToArial()
-    tp.SetJustificationToCentered()
-
-    title.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-    title.SetPosition(0.5, 0.95)  # centered at top
-
     terrain = terrain_type.lower()
 
     if terrain == "valley":
@@ -37,25 +24,25 @@ def make_title(
     else:
         raise ValueError("terrain_type must be 'mountain' or 'valley'")
 
-    subtitle = vtk.vtkTextActor()
-    subtitle.SetInput(text)
-    sub_prop = subtitle.GetTextProperty()
+    title = vtk.vtkTextActor()
+    title.SetInput(text)
+    sub_prop = title.GetTextProperty()
     sub_prop.SetFontFamilyToArial()
     sub_prop.SetFontSize(28)
     sub_prop.SetColor(1, 1, 1)
     sub_prop.SetBold(False)
     sub_prop.SetJustificationToCentered()
 
-    subtitle.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-    subtitle.SetPosition(0.5, 0.92)
+    title.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+    title.SetPosition(0.5, 0.92)
 
-    return title, subtitle
+    return title
 
 
-def make_timestep_text():
+def make_timestep_text(timestep=1000):
     """Creates a text actor that will display the timestep."""
     txt = vtk.vtkTextActor()
-    txt.SetInput("Time step: 0")
+    txt.SetInput(f"Time step: {timestep}")
 
     tp = txt.GetTextProperty()
     tp.SetFontSize(28)
@@ -65,7 +52,7 @@ def make_timestep_text():
     tp.SetJustificationToCentered()
 
     txt.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-    txt.SetPosition(0.5, 0.89)
+    txt.SetPosition(0.5, 0.85)
 
     return txt
 
