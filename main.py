@@ -27,7 +27,7 @@ from wind import (
     make_wind_streamlines,
 )
 
-TERRAIN_TYPE = "valley"  # "mountain" or "valley"
+TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
 FIRE_TYPE = "backcurve"  # "backcurve" or "headcurve" -- only used for mountain
 CURVATURE = 40  # curvature value for mountain simulations -- 40, 80, or 320 -- only used for mountain
 
