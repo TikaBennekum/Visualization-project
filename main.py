@@ -11,7 +11,7 @@ File description:
 #!/usr/bin/env vtkpython
 import vtk
 
-from animation import create_frames, get_all_files
+from animation import get_all_files
 from fire_smoke import (
     make_fire_smoke_actors,
     make_temperature_lut,
@@ -28,8 +28,8 @@ from wind import (
 )
 
 TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
-FIRE_TYPE = "headcurve"  # "backcurve" or "headcurve" -- only used for mountain
-CURVATURE = 320  # curvature value for mountain simulations -- 40, 80, or 320 -- only used for mountain
+FIRE_TYPE = "backcurve"  # "backcurve" or "headcurve" -- only used for mountain
+CURVATURE = 40  # curvature value for mountain simulations -- 40, 80, or 320 -- only used for mountain
 
 # Reading the VTS dataset
 if TERRAIN_TYPE == "valley":
@@ -37,7 +37,7 @@ if TERRAIN_TYPE == "valley":
 else:
     directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}{CURVATURE}"
 
-filename = f"{directory}/output.1000.vts"
+filename = f"{directory}/output.40000.vts"
 
 
 reader = vtk.vtkXMLGenericDataObjectReader()
@@ -83,7 +83,7 @@ renderer.AddActor(wind_actor)
 
 # Adds wind streamlines (detailed flow visualization)
 stream_actor, stream_tracer, stream_calc, stream_tube = make_wind_streamlines(
-    grid, num_seeds=50, tube_radius=1.0, terrain=TERRAIN_TYPE
+    grid, num_seeds=20, tube_radius=2.0, terrain=TERRAIN_TYPE
 )
 if stream_actor is not None:
     renderer.AddActor(stream_actor)
@@ -118,12 +118,12 @@ filters = {
 
 files = get_all_files(directory)
 
-create_frames(
-    reader,
-    render_window,
-    filters,
-    timestamp_actor,
-    (wind_actor, wind_transform, wind_tf_filter),
-    (stream_actor, stream_tracer, stream_calc, stream_tube),
-    files,
-)
+# create_frames(
+#     reader,
+#     render_window,
+#     filters,
+#     timestamp_actor,
+#     (wind_actor, wind_transform, wind_tf_filter),
+#     (stream_actor, stream_tracer, stream_calc, stream_tube),
+#     files,
+# )

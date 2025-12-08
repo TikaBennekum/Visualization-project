@@ -180,7 +180,7 @@ def make_wind_streamlines(
     tracer.SetIntegrator(rk4)
     tracer.SetIntegrationDirectionToForward()
     tracer.SetMaximumPropagation(max(x_max - x_min, y_max - y_min, z_max - z_min) * 4.0)
-    tracer.SetInitialIntegrationStep(0.5)
+    tracer.SetInitialIntegrationStep(0.1)
     tracer.SetMinimumIntegrationStep(0.01)
     tracer.SetComputeVorticity(False)
     tracer.SetInputArrayToProcess(
@@ -216,7 +216,7 @@ def make_wind_streamlines(
 
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
-    actor.GetProperty().SetColor(*color)
+    # actor.GetProperty().SetColor(*color)
     actor.GetProperty().SetOpacity(0.9)
 
     return actor, tracer, calc, tube
