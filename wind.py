@@ -132,10 +132,10 @@ def update_wind_arrow(wind, mean_u, mean_v, mean_w, scale=200.0):
 
 def make_wind_streamlines(
     grid,
-    num_seeds=50,
+    num_seeds=10,
     tube_radius=1.0,
     color=(0.2, 0.8, 1.0),
-    terrain="mountain",
+    seed_height_factor=0.1,  # fraction above z_min
 ):
     """
     Create streamlines along the top-left side of the domain slightly above the ground.
@@ -157,10 +157,7 @@ def make_wind_streamlines(
     x_min, x_max, y_min, y_max, z_min, z_max = bounds
 
     # Place seeds along a horizontal line at the top-left corner (x_min, y_max)
-    if terrain == "mountain":
-        seed_z = z_min + 0.1 * (z_max - z_min)  # slightly above ground
-    else:
-        seed_z = z_min + 0.15 * (z_max - z_min)  # slightly above ground
+    seed_z = z_min + seed_height_factor * (z_max - z_min)  # slightly above ground
     x_positions = np.linspace(x_min, x_min, num_seeds)  # constant x (left)
     y_positions = np.linspace(y_min, y_max, num_seeds)  # spread along y
     z_positions = np.full(num_seeds, seed_z)
@@ -180,7 +177,7 @@ def make_wind_streamlines(
     tracer.SetIntegrator(rk4)
     tracer.SetIntegrationDirectionToForward()
     tracer.SetMaximumPropagation(max(x_max - x_min, y_max - y_min, z_max - z_min) * 4.0)
-    tracer.SetInitialIntegrationStep(0.1)
+    tracer.SetInitialIntegrationStep(0.5)
     tracer.SetMinimumIntegrationStep(0.01)
     tracer.SetComputeVorticity(False)
     tracer.SetInputArrayToProcess(
@@ -202,21 +199,9 @@ def make_wind_streamlines(
     mapper.SetScalarModeToUsePointFieldData()
     mapper.SelectColorArray("velocity")
 
-    # Create grayscale lookup table
-    lut = vtk.vtkLookupTable()
-    lut.SetNumberOfTableValues(256)
-    lut.Build()
-
-    for i in range(256):
-        gray = i / 255.0
-        lut.SetTableValue(i, gray, gray, gray, 1.0)  # r,g,b,a
-
-    mapper.SetLookupTable(lut)
-    mapper.SetUseLookupTableScalarRange(True)
-
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
-    # actor.GetProperty().SetColor(*color)
+    actor.GetProperty().SetColor(*color)
     actor.GetProperty().SetOpacity(0.9)
 
     return actor, tracer, calc, tube

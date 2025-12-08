@@ -37,7 +37,7 @@ if TERRAIN_TYPE == "valley":
 else:
     directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}{CURVATURE}"
 
-filename = f"{directory}/output.40000.vts"
+filename = f"{directory}/output.10000.vts"
 
 
 reader = vtk.vtkXMLGenericDataObjectReader()

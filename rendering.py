@@ -29,22 +29,34 @@ def setup_camera(renderer):
     renderer.ResetCameraClippingRange()
 
 
-def make_window_and_interactor(renderer, size=(2560, 1440)):
-    """Makes window and interactor."""
+def make_window_and_interactor(size=(2560, 1440)):
+    """
+    Makes window and interactor.
+
+    NOTE: This function no longer accepts a renderer argument.
+    Renderers must be added to the returned render_window
+    by the caller (main script) after setting their viewports.
+    """
     render_window = vtk.vtkRenderWindow()
-    render_window.AddRenderer(renderer)
+    # render_window.AddRenderer(renderer) <-- REMOVE THIS LINE
+
+    # Set the size for the entire display window
     render_window.SetSize(*size)
 
-    # transparency settings
+    # General transparency settings (needed for Depth Peeling)
     render_window.SetAlphaBitPlanes(1)
     render_window.SetMultiSamples(0)
 
-    # background
-    renderer.SetBackground(0.2, 0.2, 0.25)
-    renderer.SetBackground2(0.5, 0.5, 0.6)
-    renderer.GradientBackgroundOn()
+    # Gradient background is usually set per-renderer, but if you want
+    # it for the entire window *before* renderers are added, you can leave it.
+    # However, since you're setting background in make_renderer,
+    # we can remove the background settings here to avoid confusion.
+    # renderer.SetBackground(0.2, 0.2, 0.25) <-- REMOVE
+    # renderer.SetBackground2(0.5, 0.5, 0.6) <-- REMOVE
+    # renderer.GradientBackgroundOn() <-- REMOVE
 
     interactor = vtk.vtkRenderWindowInteractor()
     interactor.SetRenderWindow(render_window)
 
+    # 🌟 We can return the size here for use in 2D positioning if needed
     return render_window, interactor
