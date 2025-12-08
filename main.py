@@ -11,18 +11,31 @@ File description:
 #!/usr/bin/env vtkpython
 import vtk
 
-from animation import create_frames
+from animation import create_frames, get_all_files
 from fire_smoke import (
     make_fire_smoke_actors,
     make_temperature_lut,
     make_temperature_scalar_bar,
 )
 from geometry import create_plane, make_outline_actor
+from labels import make_timestep_text, make_title
 from rendering import make_renderer, make_window_and_interactor, setup_camera
 from vegetation import make_vegetation_actor, make_vegetation_scalar_bar
+from wind import compute_mean_wind_direction, make_wind_arrow
+
+TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
+FIRE_TYPE = "backcurve"  # "backcurve" or "headcurve" -- only used for mountain
+CURVATURE = 40  # curvature value for mountain simulations -- 40, 80, or 320 -- only used for mountain
 
 # Reading the VTS dataset
-filename = "mountain_backcurve40/output.10000.vts"
+if TERRAIN_TYPE == "valley":
+    directory = f"{TERRAIN_TYPE}"
+else:
+    directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}{CURVATURE}"
+
+filename = f"{directory}/output.1000.vts"
+
+
 reader = vtk.vtkXMLGenericDataObjectReader()
 reader.SetFileName(filename)
 reader.Update()
@@ -38,6 +51,15 @@ renderer = make_renderer()
 outline_actor = make_outline_actor(grid)
 renderer.AddActor(outline_actor)
 
+# Adds title
+title, subtitle = make_title(TERRAIN_TYPE, fire_type=FIRE_TYPE, curvature=CURVATURE)
+renderer.AddViewProp(title)
+renderer.AddViewProp(subtitle)
+
+# Adds timestep text
+timestamp_actor = make_timestep_text()
+renderer.AddViewProp(timestamp_actor)
+
 # Adds fire and smoke to the visualization
 (levels, fire_smoke_actors, fire_contours) = make_fire_smoke_actors(
     grid, theta_name, theta_min
@@ -49,6 +71,11 @@ temp_bar = make_temperature_scalar_bar(fire_lut)
 for actor in fire_smoke_actors:
     renderer.AddActor(actor)
 renderer.AddViewProp(temp_bar)
+
+# Adds general wind arrow
+mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
+wind_actor, wind_transform, wind_tf_filter = make_wind_arrow(mean_u, mean_v, mean_w)
+renderer.AddActor(wind_actor)
 
 # Adds vegetation to the visualization
 vegetation_actor, vegetation_lut, vegetation_contour = make_vegetation_actor(grid)
@@ -78,4 +105,13 @@ filters = {
     "ground": ground_slice,
 }
 
-create_frames(reader, render_window, filters)
+files = get_all_files(directory)
+
+create_frames(
+    reader,
+    render_window,
+    filters,
+    timestamp_actor,
+    (wind_actor, wind_transform, wind_tf_filter),
+    files,
+)
