@@ -166,7 +166,7 @@ for i, params in enumerate(SIMULATION_PARAMS):
 
     # Wind Streamlines
     stream_actor, _, _, _ = make_wind_streamlines(
-        grid, num_seeds=20, tube_radius=2.0, seed_height_factor=0.1
+        grid, num_seeds=20, tube_radius=2.0, terrain_type=params["terrain"]
     )
     if stream_actor is not None:
         renderer.AddActor(stream_actor)
