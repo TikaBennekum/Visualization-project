@@ -11,7 +11,7 @@ File description:
 #!/usr/bin/env vtkpython
 import vtk
 
-from animation import create_frames, get_all_files
+from animation import get_all_files
 from fire_smoke import (
     make_fire_smoke_actors,
     make_temperature_lut,
@@ -21,10 +21,14 @@ from geometry import create_plane, make_outline_actor
 from labels import make_timestep_text, make_title
 from rendering import make_renderer, make_window_and_interactor, setup_camera
 from vegetation import make_vegetation_actor, make_vegetation_scalar_bar
-from wind import compute_mean_wind_direction, make_wind_arrow
+from wind import (
+    compute_mean_wind_direction,
+    make_wind_arrow,
+    make_wind_streamlines,
+)
 
 TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
-FIRE_TYPE = "backcurve"  # "backcurve" or "headcurve" -- only used for mountain
+FIRE_TYPE = "headcurve"  # "backcurve" or "headcurve" -- only used for mountain
 CURVATURE = 40  # curvature value for mountain simulations -- 40, 80, or 320 -- only used for mountain
 
 # Reading the VTS dataset
@@ -33,7 +37,7 @@ if TERRAIN_TYPE == "valley":
 else:
     directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}{CURVATURE}"
 
-filename = f"{directory}/output.1000.vts"
+filename = f"{directory}/output.10000.vts"
 
 
 reader = vtk.vtkXMLGenericDataObjectReader()
@@ -60,6 +64,23 @@ renderer.AddViewProp(subtitle)
 timestamp_actor = make_timestep_text()
 renderer.AddViewProp(timestamp_actor)
 
+# Adds vegetation to the visualization
+vegetation_actor, vegetation_lut, vegetation_contour = make_vegetation_actor(grid)
+vegetation_bar = make_vegetation_scalar_bar(vegetation_lut)
+renderer.AddActor(vegetation_actor)
+renderer.AddViewProp(vegetation_bar)
+
+# Creates black plane (burnt ground)
+ground_actor, ground_slice = create_plane(grid)
+renderer.AddActor(ground_actor)
+
+# Adds wind streamlines (detailed flow visualization)
+stream_actor, stream_tracer, stream_calc, stream_tube = make_wind_streamlines(
+    grid, num_seeds=30, tube_radius=1.0, terrain=TERRAIN_TYPE
+)
+if stream_actor is not None:
+    renderer.AddActor(stream_actor)
+
 # Adds fire and smoke to the visualization
 (levels, fire_smoke_actors, fire_contours) = make_fire_smoke_actors(
     grid, theta_name, theta_min
@@ -77,22 +98,12 @@ mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
 wind_actor, wind_transform, wind_tf_filter = make_wind_arrow(mean_u, mean_v, mean_w)
 renderer.AddActor(wind_actor)
 
-# Adds vegetation to the visualization
-vegetation_actor, vegetation_lut, vegetation_contour = make_vegetation_actor(grid)
-vegetation_bar = make_vegetation_scalar_bar(vegetation_lut)
-renderer.AddActor(vegetation_actor)
-renderer.AddViewProp(vegetation_bar)
-
-# Creates black plane (burnt ground)
-ground_actor, ground_slice = create_plane(grid)
-renderer.AddActor(ground_actor)
-
 # Interactive rendering
 setup_camera(renderer)
 render_window, interactor = make_window_and_interactor(renderer)
-# render_window.Render()
-# interactor.Initialize()
-# interactor.Start()
+render_window.Render()
+interactor.Initialize()
+interactor.Start()
 
 # Animation
 filters = {
@@ -107,11 +118,12 @@ filters = {
 
 files = get_all_files(directory)
 
-create_frames(
-    reader,
-    render_window,
-    filters,
-    timestamp_actor,
-    (wind_actor, wind_transform, wind_tf_filter),
-    files,
-)
+# create_frames(
+#     reader,
+#     render_window,
+#     filters,
+#     timestamp_actor,
+#     (wind_actor, wind_transform, wind_tf_filter),
+#     (stream_actor, stream_tracer, stream_calc, stream_tube),
+#     files,
+# )
