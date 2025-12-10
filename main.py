@@ -20,7 +20,7 @@ from fire_smoke import (
 from geometry import create_plane, make_outline_actor
 from labels import make_timestep_text, make_title
 from rendering import make_renderer, make_window_and_interactor, setup_camera
-from vegetation import make_vegetation_actor, make_vegetation_scalar_bar
+from vegetation import make_vegetation_actor
 from wind import (
     compute_mean_wind_direction,
     make_wind_arrow,
@@ -67,9 +67,7 @@ renderer.AddViewProp(timestamp_actor)
 
 # Adds vegetation to the visualization
 vegetation_actor, vegetation_lut, vegetation_contour = make_vegetation_actor(grid)
-vegetation_bar = make_vegetation_scalar_bar(vegetation_lut)
 renderer.AddActor(vegetation_actor)
-renderer.AddViewProp(vegetation_bar)
 
 # Creates black plane (burnt ground)
 ground_actor, ground_slice = create_plane(grid)
