@@ -33,7 +33,7 @@ def make_title(
             raise ValueError("Mountain simulations require fire_type.")
         if curvature is None:
             raise ValueError("Mountain simulations require curvature.")
-        text = f"Mountain — {fire_type.capitalize()} (Curvature {curvature})"
+        text = f"Mountain — {fire_type.capitalize()}fire (Curvature {curvature})"
     else:
         raise ValueError("terrain_type must be 'mountain' or 'valley'")
 
