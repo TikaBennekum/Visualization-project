@@ -28,14 +28,14 @@ from wind import (
 )
 
 TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
-FIRE_TYPE = "backcurve"  # "backcurve" or "headcurve" -- only used for mountain
+FIRE_TYPE = "back"  # "back" or "head" -- only used for mountain
 CURVATURE = 40  # curvature value for mountain simulations -- 40, 80, or 320 -- only used for mountain
 
 # Reading the VTS dataset
 if TERRAIN_TYPE == "valley":
     directory = f"{TERRAIN_TYPE}"
 else:
-    directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}{CURVATURE}"
+    directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}curve{CURVATURE}"
 
 filename = f"{directory}/output.10000.vts"
 

@@ -19,7 +19,7 @@ from fire_smoke import (
 from geometry import create_plane
 from labels import make_timestep_text, make_title
 from rendering import make_renderer, make_window_and_interactor, setup_camera
-from vegetation import make_vegetation_actor, make_vegetation_scalar_bar
+from vegetation import make_vegetation_actor
 from wind import (
     compute_mean_wind_direction,
     make_wind_arrow,
@@ -45,47 +45,40 @@ VIEWPORTS = [
 SIMULATION_PARAMS = [
     {
         "terrain": "mountain",
-        "fire": "headcurve",
+        "fire": "head",
         "curvature": 40,
-        "title": "Mnt C40 Head",
     },
     {
         "terrain": "mountain",
-        "fire": "headcurve",
+        "fire": "head",
         "curvature": 80,
-        "title": "Mnt C80 Head",
     },
     {
         "terrain": "mountain",
-        "fire": "headcurve",
+        "fire": "head",
         "curvature": 320,
-        "title": "Mnt C320 Head",
     },
-    {"terrain": "valley", "fire": None, "curvature": None, "title": "Valley"},
+    {"terrain": "valley", "fire": None, "curvature": None},
     {
         "terrain": "mountain",
-        "fire": "backcurve",
+        "fire": "back",
         "curvature": 40,
-        "title": "Mnt C40 Back",
     },
     {
         "terrain": "mountain",
-        "fire": "backcurve",
+        "fire": "back",
         "curvature": 80,
-        "title": "Mnt C80 Back",
     },
     {
         "terrain": "mountain",
-        "fire": "backcurve",
+        "fire": "back",
         "curvature": 320,
-        "title": "Mnt C320 Back",
     },
 ]
 
 # Global LUTs for synchronization
 # These will be created once and shared by all scalar bars
 global_fire_lut = None
-global_veg_lut = None
 all_renderers = []
 all_grids = []
 
@@ -100,7 +93,7 @@ for i, params in enumerate(SIMULATION_PARAMS):
     if params["terrain"] == "valley":
         directory = f"{params['terrain']}"
     else:
-        directory = f"{params['terrain']}_{params['fire']}{params['curvature']}"
+        directory = f"{params['terrain']}_{params['fire']}curve{params['curvature']}"
     filename = f"{directory}/output.{STATIC_TIMESTEP}.vts"
 
     # Reading the VTS dataset
@@ -123,8 +116,8 @@ for i, params in enumerate(SIMULATION_PARAMS):
     theta = grid.GetPointData().GetArray(theta_name)
     theta_min, theta_max = theta.GetRange()
 
-    # Title/Subtitle (Title is now the unique Sim name)
-    subtitle = make_title(
+    # Subtitle
+    _, subtitle = make_title(
         params["terrain"], fire_type=params["fire"], curvature=params["curvature"]
     )
     renderer.AddViewProp(subtitle)
@@ -134,10 +127,7 @@ for i, params in enumerate(SIMULATION_PARAMS):
     renderer.AddViewProp(timestamp_actor)
 
     # Vegetation Actor (and creating global LUTs)
-    vegetation_actor, vegetation_lut, _ = make_vegetation_actor(grid)
-
-    if global_veg_lut is None:
-        global_veg_lut = vegetation_lut
+    vegetation_actor, _, _ = make_vegetation_actor(grid)
 
     renderer.AddActor(vegetation_actor)
 
@@ -166,7 +156,7 @@ for i, params in enumerate(SIMULATION_PARAMS):
 
     # Wind Streamlines
     stream_actor, _, _, _ = make_wind_streamlines(
-        grid, num_seeds=20, tube_radius=2.0, terrain_type=params["terrain"]
+        grid, num_seeds=20, tube_radius=2.0, terrain=params["terrain"]
     )
     if stream_actor is not None:
         renderer.AddActor(stream_actor)
@@ -186,16 +176,8 @@ all_renderers.append(legend_renderer)
 if global_fire_lut:
     temp_bar = make_temperature_scalar_bar(global_fire_lut)
     # Adjust position for the dedicated legend viewport
-    temp_bar.SetPosition(0.05, 0.2)
+    temp_bar.SetPosition(0.5, 0.1)
     legend_renderer.AddViewProp(temp_bar)
-
-# Add Vegetation Scalar Bar
-if global_veg_lut:
-    veg_bar = make_vegetation_scalar_bar(global_veg_lut)
-    # Adjust position for the dedicated legend viewport
-    veg_bar.SetPosition(0.5, 0.2)
-    legend_renderer.AddViewProp(veg_bar)
-
 
 # --- 3. SYNCHRONIZATION AND INTERACTION ---
 

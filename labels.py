@@ -11,6 +11,19 @@ def make_title(
     curvature=None,
 ):
     """Creates a static title actor for all frames."""
+    title = vtk.vtkTextActor()
+    title.SetInput("Fire Spread Simulation")
+
+    tp = title.GetTextProperty()
+    tp.SetFontSize(32)
+    tp.SetBold(True)
+    tp.SetColor(1, 1, 1)
+    tp.SetFontFamilyToArial()
+    tp.SetJustificationToCentered()
+
+    title.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+    title.SetPosition(0.5, 0.95)  # centered at top
+
     terrain = terrain_type.lower()
 
     if terrain == "valley":
@@ -20,23 +33,23 @@ def make_title(
             raise ValueError("Mountain simulations require fire_type.")
         if curvature is None:
             raise ValueError("Mountain simulations require curvature.")
-        text = f"Mountain — {fire_type.capitalize()} (Curvature {curvature})"
+        text = f"Mountain — {fire_type.capitalize()}fire (Curvature {curvature})"
     else:
         raise ValueError("terrain_type must be 'mountain' or 'valley'")
 
-    title = vtk.vtkTextActor()
-    title.SetInput(text)
-    sub_prop = title.GetTextProperty()
+    subtitle = vtk.vtkTextActor()
+    subtitle.SetInput(text)
+    sub_prop = subtitle.GetTextProperty()
     sub_prop.SetFontFamilyToArial()
     sub_prop.SetFontSize(28)
     sub_prop.SetColor(1, 1, 1)
     sub_prop.SetBold(False)
     sub_prop.SetJustificationToCentered()
 
-    title.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-    title.SetPosition(0.5, 0.92)
+    subtitle.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+    subtitle.SetPosition(0.5, 0.92)
 
-    return title
+    return title, subtitle
 
 
 def make_timestep_text(timestep=1000):
@@ -52,7 +65,7 @@ def make_timestep_text(timestep=1000):
     tp.SetJustificationToCentered()
 
     txt.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-    txt.SetPosition(0.5, 0.85)
+    txt.SetPosition(0.5, 0.89)
 
     return txt
 
