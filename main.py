@@ -84,11 +84,15 @@ if stream_actor is not None:
 for actor in fire_smoke_actors:
     renderer.AddActor(actor)
 
-legend_actors = make_fire_legend(levels)
+legend = make_fire_legend(levels)
 
-for square, text in legend_actors:
-    renderer.AddViewProp(square)
-    renderer.AddViewProp(text)
+for item in legend:
+    if isinstance(item, tuple):
+        square, text = item
+        renderer.AddViewProp(square)
+        renderer.AddViewProp(text)
+    else:
+        renderer.AddViewProp(item)  # background box or title
 
 # Adds general wind arrow
 mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)

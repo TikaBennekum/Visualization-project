@@ -108,65 +108,126 @@ def make_fire_smoke_actors(grid, theta_name, theta_min):
 
 def make_fire_legend(levels):
     """
-    Build a discrete legend showing each isocontour level as a
-    colored square with a text label.
+    Build a discrete legend showing each isocontour level as
+    a colored square with a text label + a title + grey background box.
 
-    levels: list of 5 temperature values (low, mid, hi, higher, very_hi)
-
-    Returns a list of (square_actor, text_actor).
+    Returns a list of actors.
     """
     legend_actors = []
-    colors = get_fire_colors().values()
+    colors = list(get_fire_colors().values())
 
-    # Position of top-most legend entry (NDC coordinates)
-    x0 = 0.1  # horizontal position (left)
-    y0 = 0.85  # start near the top
-    dy = 0.05  # vertical spacing
+    # Legend layout (NDC coordinates)
+    x0 = 0.1  # left position
+    y0 = 0.85  # top position
+    dy = 0.06  # vertical spacing
+    sq_px = 24  # square size (pixels)
 
+    # -------------------------
+    #  Background box
+    # -------------------------
+    bg = vtk.vtkActor2D()
+    bg_mapper = vtk.vtkPolyDataMapper2D()
+
+    # Compute height of full legend including title
+    total_entries = len(levels) + 1  # +1 for title line
+    height_px = total_entries * dy * 800  # multiply by window size if needed
+
+    # Simple rectangle in pixel space
+    bg_pts = vtk.vtkPoints()
+    bg_polys = vtk.vtkCellArray()
+
+    # Width/height of box in pixels
+    box_w = 200
+    box_h = int(40 + len(levels) * 40)
+
+    bg_pts.InsertNextPoint(0, 0, 0)
+    bg_pts.InsertNextPoint(box_w, 0, 0)
+    bg_pts.InsertNextPoint(box_w, box_h, 0)
+    bg_pts.InsertNextPoint(0, box_h, 0)
+
+    bg_polys.InsertNextCell(4)
+    for i in range(4):
+        bg_polys.InsertCellPoint(i)
+
+    bg_poly = vtk.vtkPolyData()
+    bg_poly.SetPoints(bg_pts)
+    bg_poly.SetPolys(bg_polys)
+
+    bg_mapper.SetInputData(bg_poly)
+    bg.SetMapper(bg_mapper)
+
+    bg.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+    bg.SetPosition(x0 - 0.02, y0 - 0.015)
+
+    bg.GetProperty().SetColor(0.3, 0.3, 0.3)  # light gray
+    bg.GetProperty().SetOpacity(0.6)
+
+    legend_actors.append(bg)
+
+    # -------------------------
+    #  Title
+    # -------------------------
+    title = vtk.vtkTextActor()
+    title.SetInput("Temperature")
+    title.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+    title.SetPosition(x0, y0 + 0.03)
+
+    tp = title.GetTextProperty()
+    tp.SetColor(1, 1, 1)
+    tp.SetFontSize(28)
+    tp.SetBold(True)
+    tp.SetFontFamilyToArial()
+
+    legend_actors.append(title)
+
+    # -------------------------
+    #  Squares + labels
+    # -------------------------
     for i, (temp, col) in enumerate(zip(levels, colors)):
         y = y0 - i * dy
 
-        # --- Colored square (vtkActor2D) ---
+        # --- Colored square (2D polydata) ---
         square = vtk.vtkActor2D()
         square_mapper = vtk.vtkPolyDataMapper2D()
 
-        # Create a square polygon
         pts = vtk.vtkPoints()
         polys = vtk.vtkCellArray()
-        coords = [(0, 0), (30, 0), (30, 30), (0, 30)]
-        for p in coords:
-            pts.InsertNextPoint(p[0], p[1], 0)
+
+        # Square geometry in pixel coordinates
+        pts.InsertNextPoint(0, 0, 0)
+        pts.InsertNextPoint(sq_px, 0, 0)
+        pts.InsertNextPoint(sq_px, sq_px, 0)
+        pts.InsertNextPoint(0, sq_px, 0)
 
         polys.InsertNextCell(4)
-        polys.InsertCellPoint(0)
-        polys.InsertCellPoint(1)
-        polys.InsertCellPoint(2)
-        polys.InsertCellPoint(3)
+        for j in range(4):
+            polys.InsertCellPoint(j)
 
-        square_poly = vtk.vtkPolyData()
-        square_poly.SetPoints(pts)
-        square_poly.SetPolys(polys)
+        sq_poly = vtk.vtkPolyData()
+        sq_poly.SetPoints(pts)
+        sq_poly.SetPolys(polys)
 
-        square_mapper.SetInputData(square_poly)
+        square_mapper.SetInputData(sq_poly)
         square.SetMapper(square_mapper)
-
         square.GetProperty().SetColor(*col)
 
-        # Position in normalized viewport coordinates
         square.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
         square.SetPosition(x0, y)
 
-        # --- Text label ---
+        legend_actors.append(square)
+
+        # --- Label text ---
         text = vtk.vtkTextActor()
         text.SetInput(f"{temp:.1f} K")
         text.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-        text.SetPosition(x0 + 0.02, y - 0.001)
+        text.SetPosition(x0 + 0.04, y + 0.002)
+
         tp = text.GetTextProperty()
         tp.SetColor(1, 1, 1)
         tp.SetFontSize(24)
         tp.SetBold(True)
         tp.SetFontFamilyToArial()
 
-        legend_actors.append((square, text))
+        legend_actors.append(text)
 
     return legend_actors
