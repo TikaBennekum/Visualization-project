@@ -25,6 +25,7 @@ from wind import (
     compute_mean_wind_direction,
     make_wind_arrow,
     make_wind_streamlines,
+    make_wind_speed_label
 )
 
 TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
@@ -95,15 +96,26 @@ renderer.AddViewProp(temp_bar)
 
 # Adds general wind arrow
 mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
-wind_actor, wind_transform, wind_tf_filter = make_wind_arrow(mean_u, mean_v, mean_w)
+wind = make_wind_arrow(mean_u, mean_v, mean_w)   # <- keep as tuple (actor, transform, tf)
+wind_actor = wind[0]
 renderer.AddActor(wind_actor)
 
 # Interactive rendering
 setup_camera(renderer)
 render_window, interactor = make_window_and_interactor(renderer)
+
+# create the speed label (NOW render_window exists, and BEFORE Start())
+speed_label = make_wind_speed_label(renderer, render_window, wind_actor, unit="m/s")
+
+# (optional) set it to the current speed immediately
+from wind import wind_speed, update_wind_speed_label
+spd = wind_speed(mean_u, mean_v, mean_w)
+update_wind_speed_label(speed_label, renderer, render_window, wind_actor, spd, unit="m/s")
+
 render_window.Render()
 interactor.Initialize()
 interactor.Start()
+
 
 # Animation
 filters = {
