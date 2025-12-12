@@ -132,7 +132,7 @@ def update_wind_arrow(wind, mean_u, mean_v, mean_w, scale=200.0):
 
 def make_wind_streamlines(
     grid,
-    num_seeds=50,
+    num_seeds=10,
     tube_radius=1.0,
     color=(0.2, 0.8, 1.0),
     terrain="mountain",
@@ -191,33 +191,30 @@ def make_wind_streamlines(
     # 4) Tube filter for better visualization
     tube = vtk.vtkTubeFilter()
     tube.SetInputConnection(tracer.GetOutputPort())
-    tube.SetNumberOfSides(8)
+    tube.SetNumberOfSides(20)
     tube.SetRadius(tube_radius)
     tube.CappingOn()
+    tube.SetUseDefaultNormal(False)
+    tube.SetVaryRadiusToVaryRadiusOff()
     tube.Update()
 
     # 5) Mapper + actor
     mapper = vtk.vtkPolyDataMapper()
     mapper.SetInputConnection(tube.GetOutputPort())
-    mapper.SetScalarModeToUsePointFieldData()
-    mapper.SelectColorArray("velocity")
 
-    # Create grayscale lookup table
-    lut = vtk.vtkLookupTable()
-    lut.SetNumberOfTableValues(256)
-    lut.Build()
-
-    for i in range(256):
-        gray = i / 255.0
-        lut.SetTableValue(i, gray, gray, gray, 1.0)  # r,g,b,a
-
-    mapper.SetLookupTable(lut)
-    mapper.SetUseLookupTableScalarRange(True)
+    # Disable scalar coloring – use a fixed actor color instead
+    mapper.ScalarVisibilityOff()
 
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
-    # actor.GetProperty().SetColor(*color)
-    actor.GetProperty().SetOpacity(0.5)
+
+    # Set a constant gray color
+    actor.GetProperty().SetColor(color)  # mid gray
+    actor.GetProperty().SetOpacity(0.12)
+    print(grid.GetBounds())
+
+    # disable lighting so it doesn't look darker from some angles
+    actor.GetProperty().LightingOff()
 
     return actor, tracer, calc, tube
 

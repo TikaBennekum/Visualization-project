@@ -28,7 +28,7 @@ from wind import (
 )
 
 TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
-FIRE_TYPE = "headcurve"  # "backcurve" or "headcurve" -- only used for mountain
+FIRE_TYPE = "backcurve"  # "backcurve" or "headcurve" -- only used for mountain
 CURVATURE = 40  # curvature value for mountain simulations -- 40, 80, or 320 -- only used for mountain
 
 # Reading the VTS dataset
@@ -37,7 +37,7 @@ if TERRAIN_TYPE == "valley":
 else:
     directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}{CURVATURE}"
 
-filename = f"{directory}/output.10000.vts"
+filename = f"{directory}/output.20000.vts"
 
 
 reader = vtk.vtkXMLGenericDataObjectReader()
@@ -76,7 +76,7 @@ renderer.AddActor(ground_actor)
 
 # Adds wind streamlines (detailed flow visualization)
 stream_actor, stream_tracer, stream_calc, stream_tube = make_wind_streamlines(
-    grid, num_seeds=30, tube_radius=1.0, terrain=TERRAIN_TYPE
+    grid, num_seeds=17, tube_radius=4.0, color=(0.95,0.95,0.95), terrain=TERRAIN_TYPE
 )
 if stream_actor is not None:
     renderer.AddActor(stream_actor)
