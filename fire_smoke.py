@@ -65,7 +65,7 @@ def get_fire_colors():
     }
 
 
-def make_fire_smoke_actors(grid, theta_name, theta_min):
+def make_fire_smoke_actors(grid, theta_name):
     """Creates fire and smoke actors."""
     low, mid, hi, higher, very_hi = get_fire_levels()
     colors = get_fire_colors()

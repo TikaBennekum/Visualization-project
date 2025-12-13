@@ -23,13 +23,14 @@ def make_renderer(background=(0.1, 0.1, 0.15)):
 def setup_camera(renderer):
     """Creates the angle at which we view the grid."""
     camera = renderer.GetActiveCamera()
-    camera.SetPosition(1180, -2348, 2780)
-    camera.SetFocalPoint(101.0, -1.0, 449)
+    camera.SetPosition(1180, -2348, 2500)
+    camera.SetFocalPoint(101.0, -1.0, 450)
     camera.SetViewUp(-0.269, 0.614, 0.742)
+
     renderer.ResetCameraClippingRange()
 
 
-def make_window_and_interactor(renderer, size=(2560, 1440)):
+def make_window_and_interactor(renderer, size=(2000, 1440)):
     """Makes window and interactor."""
     render_window = vtk.vtkRenderWindow()
     render_window.AddRenderer(renderer)

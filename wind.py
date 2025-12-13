@@ -350,7 +350,6 @@ def make_wind_streamlines(
     # Set a constant gray color
     actor.GetProperty().SetColor(color)  # mid gray
     actor.GetProperty().SetOpacity(0.17)
-    print(grid.GetBounds())
 
     # disable lighting so it doesn't look darker from some angles
     actor.GetProperty().LightingOff()

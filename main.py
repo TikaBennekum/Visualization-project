@@ -11,7 +11,7 @@ File description:
 #!/usr/bin/env vtkpython
 import vtk
 
-from animation import create_frames, get_all_files
+from animation import get_all_files
 from fire_smoke import make_fire_legend, make_fire_smoke_actors
 from geometry import create_plane
 from labels import make_timestep_text, make_title
@@ -45,7 +45,6 @@ grid = reader.GetOutput()
 # Get scalar field that represents potential temperature
 theta_name = "theta"
 theta = grid.GetPointData().GetArray(theta_name)
-theta_min, theta_max = theta.GetRange()
 
 # Initializes rendering
 renderer = make_renderer()
@@ -75,9 +74,7 @@ if stream_actor is not None:
     renderer.AddActor(stream_actor)
 
 # Adds fire and smoke to the visualization
-(levels, fire_smoke_actors, fire_contours) = make_fire_smoke_actors(
-    grid, theta_name, theta_min
-)
+(levels, fire_smoke_actors, fire_contours) = make_fire_smoke_actors(grid, theta_name)
 
 for actor in fire_smoke_actors:
     renderer.AddActor(actor)
@@ -137,12 +134,12 @@ filters = {
 
 files = get_all_files(directory)
 
-create_frames(
-    reader,
-    render_window,
-    filters,
-    timestamp_actor,
-    wind,
-    (stream_actor, stream_tracer, stream_calc, stream_tube),
-    files,
-)
+# create_frames(
+#     reader,
+#     render_window,
+#     filters,
+#     timestamp_actor,
+#     wind,
+#     (stream_actor, stream_tracer, stream_calc, stream_tube),
+#     files,
+# )
