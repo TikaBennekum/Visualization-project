@@ -20,7 +20,7 @@ from vegetation import make_vegetation_actor
 from wind import (
     compute_mean_wind_direction,
     make_wind_arrow,
-    make_wind_speed_label,
+    make_wind_speed_follower,
     make_wind_streamlines,
 )
 
@@ -104,16 +104,20 @@ renderer.AddActor(wind_actor)
 setup_camera(renderer)
 render_window, interactor = make_window_and_interactor(renderer)
 
-# create the speed label (NOW render_window exists, and BEFORE Start())
-speed_label = make_wind_speed_label(renderer, render_window, wind_actor, unit="m/s")
-
-# (optional) set it to the current speed immediately
-from wind import update_wind_speed_label, wind_speed
+# create a 3D follower speed label above the arrow (sticks in world space)
+from wind import wind_speed
 
 spd = wind_speed(mean_u, mean_v, mean_w)
-update_wind_speed_label(
-    speed_label, renderer, render_window, wind_actor, spd, unit="m/s"
+wind_label = make_wind_speed_follower(
+    renderer,
+    wind_actor,
+    speed_value=spd,
+    unit="m/s",
+    height_offset_factor=0.25,
 )
+
+# If you later update the wind vector, also call update_wind_speed_follower
+# to keep the label text/position in sync.
 
 render_window.Render()
 interactor.Initialize()

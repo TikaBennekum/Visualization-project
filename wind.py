@@ -64,12 +64,19 @@ def make_wind_arrow(
 
 
 def wind_speed(mean_u, mean_v, mean_w):
-    """ Calulates wind speed."""
+    """Calulates wind speed."""
     return float(np.sqrt(mean_u**2 + mean_v**2 + mean_w**2))
 
-def make_wind_speed_label(renderer, render_window, wind_actor,
-                          unit="m/s", color=(1, 1, 1),
-                          font_size=18, pixel_offset=(21, 15)):
+
+def make_wind_speed_label(
+    renderer,
+    render_window,
+    wind_actor,
+    unit="m/s",
+    color=(1, 1, 1),
+    font_size=18,
+    pixel_offset=(21, 15),
+):
     """
     Creates wind speed label to put above arrow.
     """
@@ -83,12 +90,27 @@ def make_wind_speed_label(renderer, render_window, wind_actor,
 
     renderer.AddActor2D(text)
 
-    update_wind_speed_label(text, renderer, render_window, wind_actor,
-                            speed_value=0.0, unit=unit, pixel_offset=pixel_offset)
+    update_wind_speed_label(
+        text,
+        renderer,
+        render_window,
+        wind_actor,
+        speed_value=0.0,
+        unit=unit,
+        pixel_offset=pixel_offset,
+    )
     return text
 
-def update_wind_speed_label(text_actor, renderer, render_window, wind_actor,
-                            speed_value, unit="m/s", pixel_offset=(21, 15)):
+
+def update_wind_speed_label(
+    text_actor,
+    renderer,
+    render_window,
+    wind_actor,
+    speed_value,
+    unit="m/s",
+    pixel_offset=(21, 15),
+):
     """
     Updates label text + positions it above the arrow based on the arrow's position.
     """
@@ -108,6 +130,75 @@ def update_wind_speed_label(text_actor, renderer, render_window, wind_actor,
     clamped_x = max(0, min(int(pos[0]), max(0, w - 1)))
     clamped_y = max(0, min(int(pos[1]), max(0, h - 1)))
     text_actor.SetDisplayPosition(clamped_x, clamped_y)
+
+
+# 3D follower-style label that sticks to the wind arrow in world space
+def make_wind_speed_follower(
+    renderer,
+    wind_actor,
+    speed_value=0.0,
+    unit="m/s",
+    color=(1, 1, 1),
+    height_offset_factor=0.2,
+    scale=20.0,
+):
+    # Use vtkFollower so the text always faces the camera and supports SetCamera
+    vector_text = vtk.vtkVectorText()
+    vector_text.SetText(f"{speed_value:.2f} {unit}")
+
+    mapper = vtk.vtkPolyDataMapper()
+    mapper.SetInputConnection(vector_text.GetOutputPort())
+
+    follower = vtk.vtkFollower()
+    follower.SetMapper(mapper)
+    follower.GetProperty().SetColor(*color)
+    # VectorText units are small; scale up generously
+    follower.SetScale(scale, scale, scale)
+
+    # Position above the arrow
+    update_wind_speed_follower(
+        follower, renderer, wind_actor, speed_value, unit, height_offset_factor
+    )
+    follower.SetCamera(renderer.GetActiveCamera())
+    renderer.AddActor(follower)
+    return follower
+
+
+def update_wind_speed_follower(
+    text_actor,
+    renderer,
+    wind_actor,
+    speed_value,
+    unit="m/s",
+    height_offset_factor=0.2,
+):
+    # Update text if mapper supports VectorText input; else ignore text update
+    try:
+        mapper = text_actor.GetMapper()
+        src = mapper.GetInputConnection(0, 0).GetProducer()
+        if isinstance(src, vtk.vtkVectorText):
+            src.SetText(f"{speed_value:.2f} {unit}")
+    except Exception:
+        pass
+
+    # Compute a position just above the arrow's top in world coordinates
+    try:
+        bx0, bx1, by0, by1, bz0, bz1 = wind_actor.GetBounds()
+        cx = 0.5 * (bx0 + bx1)
+        cy = 0.5 * (by0 + by1)
+        z_offset = (bz1 - bz0) * height_offset_factor
+        text_actor.SetPosition(cx, cy, bz1 + z_offset)
+    except Exception:
+        # fallback to actor position
+        x, y, z = wind_actor.GetPosition()
+        text_actor.SetPosition(x, y, z)
+
+    # ensure it faces the camera
+    try:
+        text_actor.SetCamera(renderer.GetActiveCamera())
+    except Exception:
+        pass
+
 
 def normalise_vector(vec):
     """
