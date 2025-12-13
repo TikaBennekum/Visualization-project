@@ -11,7 +11,7 @@ File description:
 #!/usr/bin/env vtkpython
 import vtk
 
-from animation import get_all_files
+from animation import create_frames, get_all_files
 from fire_smoke import make_fire_legend, make_fire_smoke_actors
 from geometry import create_plane
 from labels import make_timestep_text, make_title
@@ -34,7 +34,7 @@ if TERRAIN_TYPE == "valley":
 else:
     directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}curve{CURVATURE}"
 
-filename = f"{directory}/output.20000.vts"
+filename = f"{directory}/output.10000.vts"
 
 
 reader = vtk.vtkXMLGenericDataObjectReader()
@@ -137,12 +137,12 @@ filters = {
 
 files = get_all_files(directory)
 
-# create_frames(
-#     reader,
-#     render_window,
-#     filters,
-#     timestamp_actor,
-#     (wind_actor, wind_transform, wind_tf_filter),
-#     (stream_actor, stream_tracer, stream_calc, stream_tube),
-#     files,
-# )
+create_frames(
+    reader,
+    render_window,
+    filters,
+    timestamp_actor,
+    wind,
+    (stream_actor, stream_tracer, stream_calc, stream_tube),
+    files,
+)
