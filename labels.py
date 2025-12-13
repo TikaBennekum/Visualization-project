@@ -55,7 +55,10 @@ def make_title(
 def make_timestep_text(timestep=1000):
     """Creates a text actor that will display the timestep."""
     txt = vtk.vtkTextActor()
-    txt.SetInput(f"Time: {timestep / 100:.0f} s")
+    timestap_seconds = timestep // 100
+    minutes = timestap_seconds // 60
+    seconds = timestap_seconds % 60
+    txt.SetInput(f"Simulation time: {minutes:d} min {seconds:02d} s")
 
     tp = txt.GetTextProperty()
     tp.SetFontSize(28)
@@ -72,4 +75,7 @@ def make_timestep_text(timestep=1000):
 
 def update_timestep_text(actor, timestep):
     """Updates the text content according to timestep."""
-    actor.SetInput(f"Time: {timestep / 100:.0f} s")
+    timestap_seconds = timestep // 100
+    minutes = timestap_seconds // 60
+    seconds = timestap_seconds % 60
+    actor.SetInput(f"Simulation time: {minutes:d} min {seconds:02d} s")
