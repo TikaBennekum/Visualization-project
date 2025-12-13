@@ -140,6 +140,7 @@ def make_wind_speed_follower(
     unit="m/s",
     color=(1, 1, 1),
     height_offset_factor=0.2,
+    x_offset_factor=-0.3,
     scale=20.0,
 ):
     # Use vtkFollower so the text always faces the camera and supports SetCamera
@@ -157,7 +158,13 @@ def make_wind_speed_follower(
 
     # Position above the arrow
     update_wind_speed_follower(
-        follower, renderer, wind_actor, speed_value, unit, height_offset_factor
+        follower,
+        renderer,
+        wind_actor,
+        speed_value,
+        unit,
+        height_offset_factor,
+        x_offset_factor,
     )
     follower.SetCamera(renderer.GetActiveCamera())
     renderer.AddActor(follower)
@@ -171,6 +178,7 @@ def update_wind_speed_follower(
     speed_value,
     unit="m/s",
     height_offset_factor=0.2,
+    x_offset_factor=-0.3,
 ):
     # Update text if mapper supports VectorText input; else ignore text update
     try:
@@ -184,7 +192,8 @@ def update_wind_speed_follower(
     # Compute a position just above the arrow's top in world coordinates
     try:
         bx0, bx1, by0, by1, bz0, bz1 = wind_actor.GetBounds()
-        cx = 0.5 * (bx0 + bx1)
+        width = bx1 - bx0
+        cx = 0.5 * (bx0 + bx1) + width * x_offset_factor
         cy = 0.5 * (by0 + by1)
         z_offset = (bz1 - bz0) * height_offset_factor
         text_actor.SetPosition(cx, cy, bz1 + z_offset)
