@@ -128,17 +128,13 @@ def make_fire_legend(levels):
     bg = vtk.vtkActor2D()
     bg_mapper = vtk.vtkPolyDataMapper2D()
 
-    # Compute height of full legend including title
-    total_entries = len(levels) + 1  # +1 for title line
-    height_px = total_entries * dy * 800  # multiply by window size if needed
-
     # Simple rectangle in pixel space
     bg_pts = vtk.vtkPoints()
     bg_polys = vtk.vtkCellArray()
 
     # Width/height of box in pixels
-    box_w = 200
-    box_h = int(40 + len(levels) * 40)
+    box_w = 400
+    box_h = int(60 + len(levels) * 85)
 
     bg_pts.InsertNextPoint(0, 0, 0)
     bg_pts.InsertNextPoint(box_w, 0, 0)
@@ -157,7 +153,7 @@ def make_fire_legend(levels):
     bg.SetMapper(bg_mapper)
 
     bg.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-    bg.SetPosition(x0 - 0.02, y0 - 0.015)
+    bg.SetPosition(x0 - 0.02, y0 - (len(levels) - 1) * dy - 0.02)
 
     bg.GetProperty().SetColor(0.3, 0.3, 0.3)  # light gray
     bg.GetProperty().SetOpacity(0.6)

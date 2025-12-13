@@ -13,7 +13,7 @@ import vtk
 
 from animation import get_all_files
 from fire_smoke import make_fire_legend, make_fire_smoke_actors
-from geometry import create_plane, make_outline_actor
+from geometry import create_plane
 from labels import make_timestep_text, make_title
 from rendering import make_renderer, make_window_and_interactor, setup_camera
 from vegetation import make_vegetation_actor
@@ -49,8 +49,6 @@ theta_min, theta_max = theta.GetRange()
 
 # Initializes rendering
 renderer = make_renderer()
-outline_actor = make_outline_actor(grid)
-renderer.AddActor(outline_actor)
 
 # Adds title
 title, subtitle = make_title(TERRAIN_TYPE, fire_type=FIRE_TYPE, curvature=CURVATURE)
