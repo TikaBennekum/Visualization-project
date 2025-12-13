@@ -25,10 +25,11 @@ from wind import (
     compute_mean_wind_direction,
     make_wind_arrow,
     make_wind_streamlines,
+    make_wind_speed_label
 )
 
 TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
-FIRE_TYPE = "headcurve"  # "backcurve" or "headcurve" -- only used for mountain
+FIRE_TYPE = "backcurve"  # "backcurve" or "headcurve" -- only used for mountain
 CURVATURE = 40  # curvature value for mountain simulations -- 40, 80, or 320 -- only used for mountain
 
 # Reading the VTS dataset
@@ -37,7 +38,7 @@ if TERRAIN_TYPE == "valley":
 else:
     directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}{CURVATURE}"
 
-filename = f"{directory}/output.10000.vts"
+filename = f"{directory}/output.20000.vts"
 
 
 reader = vtk.vtkXMLGenericDataObjectReader()
@@ -76,7 +77,7 @@ renderer.AddActor(ground_actor)
 
 # Adds wind streamlines (detailed flow visualization)
 stream_actor, stream_tracer, stream_calc, stream_tube = make_wind_streamlines(
-    grid, num_seeds=30, tube_radius=1.0, terrain=TERRAIN_TYPE
+    grid, num_seeds=17, tube_radius=4.0, color=(0.95,0.95,0.95), terrain=TERRAIN_TYPE
 )
 if stream_actor is not None:
     renderer.AddActor(stream_actor)
@@ -95,15 +96,26 @@ renderer.AddViewProp(temp_bar)
 
 # Adds general wind arrow
 mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
-wind_actor, wind_transform, wind_tf_filter = make_wind_arrow(mean_u, mean_v, mean_w)
+wind = make_wind_arrow(mean_u, mean_v, mean_w)   # <- keep as tuple (actor, transform, tf)
+wind_actor = wind[0]
 renderer.AddActor(wind_actor)
 
 # Interactive rendering
 setup_camera(renderer)
 render_window, interactor = make_window_and_interactor(renderer)
+
+# create the speed label (NOW render_window exists, and BEFORE Start())
+speed_label = make_wind_speed_label(renderer, render_window, wind_actor, unit="m/s")
+
+# (optional) set it to the current speed immediately
+from wind import wind_speed, update_wind_speed_label
+spd = wind_speed(mean_u, mean_v, mean_w)
+update_wind_speed_label(speed_label, renderer, render_window, wind_actor, spd, unit="m/s")
+
 render_window.Render()
 interactor.Initialize()
 interactor.Start()
+
 
 # Animation
 filters = {

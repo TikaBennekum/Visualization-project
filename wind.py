@@ -4,8 +4,7 @@ Names: Tika van Bennekum, Anezka Potesilova
 Student 13392425, 15884392
 
 File description:
-    Here the 3D array that points in the wind direction is computed,
-    and a small 3D arrow indicating the wind direction is created.
+    Here the wind for the visualization is created.
 """
 
 import numpy as np
@@ -24,9 +23,6 @@ def compute_mean_wind_direction(grid):
     mean_v = np.nanmean(v_array)
     mean_w = np.nanmean(w_array)
 
-    print(
-        f"Mean wind components: u={mean_u:.2f}, v={mean_v:.2f}, w={mean_w:.2f}"
-    )  # TODO: remove print, only for debugging
     return mean_u, mean_v, mean_w
 
 
@@ -35,25 +31,22 @@ def make_wind_arrow(
 ):
     """
     Create a small 3D arrow indicating wind direction that stays in the same screen position.
-    start_pos is in world coordinates.
     """
 
-    # 1. Normalize direction
+    # normalize direction
     vec_normalized = normalise_vector(np.array([mean_u, mean_v, mean_w]))
 
-    # 2. Arrow geometry
+    # arrow geometry
     arrow = vtk.vtkArrowSource()
     arrow.SetTipResolution(20)
     arrow.SetShaftResolution(20)
 
-    # 3. Rotate
+    # rotation and scaling
     transform = vtk.vtkTransform()
     rotate(transform, vec_normalized)
-
-    # 4. Scale arrow
     transform.Scale(scale, scale, scale)
 
-    # 5. Apply transform
+    # transform
     tf = vtk.vtkTransformPolyDataFilter()
     tf.SetInputConnection(arrow.GetOutputPort())
     tf.SetTransform(transform)
@@ -69,6 +62,52 @@ def make_wind_arrow(
 
     return actor, transform, tf
 
+
+def wind_speed(mean_u, mean_v, mean_w):
+    """ Calulates wind speed."""
+    return float(np.sqrt(mean_u**2 + mean_v**2 + mean_w**2))
+
+def make_wind_speed_label(renderer, render_window, wind_actor,
+                          unit="m/s", color=(1, 1, 1),
+                          font_size=18, pixel_offset=(21, 15)):
+    """
+    Creates wind speed label to put above arrow.
+    """
+    text = vtk.vtkTextActor()
+    text.SetInput("")  # set later
+    tp = text.GetTextProperty()
+    tp.SetColor(*color)
+    tp.SetFontSize(font_size)
+    tp.BoldOn()
+    tp.ShadowOn()
+
+    renderer.AddActor2D(text)
+
+    update_wind_speed_label(text, renderer, render_window, wind_actor,
+                            speed_value=0.0, unit=unit, pixel_offset=pixel_offset)
+    return text
+
+def update_wind_speed_label(text_actor, renderer, render_window, wind_actor,
+                            speed_value, unit="m/s", pixel_offset=(21, 15)):
+    """
+    Updates label text + positions it above the arrow based on the arrow's position.
+    """
+    text_actor.SetInput(f"{speed_value:.2f} {unit}")
+
+    # changes arrow coordinations
+    x, y, z = wind_actor.GetPosition()
+    renderer.SetWorldPoint(x, y, z, 1.0)
+    renderer.WorldToDisplay()
+    dx, dy, _ = renderer.GetDisplayPoint()
+
+    text_actor.SetDisplayPosition(int(dx + pixel_offset[0]), int(dy + pixel_offset[1]))
+
+    # keep it inside the window bounds
+    w, h = render_window.GetSize()
+    pos = text_actor.GetPosition()
+    clamped_x = max(0, min(int(pos[0]), max(0, w - 1)))
+    clamped_y = max(0, min(int(pos[1]), max(0, h - 1)))
+    text_actor.SetDisplayPosition(clamped_x, clamped_y)
 
 def normalise_vector(vec):
     """
@@ -111,19 +150,19 @@ def update_wind_arrow(wind, mean_u, mean_v, mean_w, scale=200.0):
     """
     wind_actor, transform, tf_filter = wind
 
-    # 1. Normalize direction
+    # normalize direction
     vec_normalized = normalise_vector(np.array([mean_u, mean_v, mean_w]))
 
-    # 2. Reset transform
+    # reset transform
     transform.Identity()
 
-    # 3. Rotate
+    # rotate
     rotate(transform, vec_normalized)
 
-    # 4. Scale only
+    # scale
     transform.Scale(scale, scale, scale)
 
-    # 5. Update the filter
+    # update filter
     tf_filter.SetTransform(transform)
     tf_filter.Update()
 
@@ -132,7 +171,7 @@ def update_wind_arrow(wind, mean_u, mean_v, mean_w, scale=200.0):
 
 def make_wind_streamlines(
     grid,
-    num_seeds=50,
+    num_seeds=10,
     tube_radius=1.0,
     color=(0.2, 0.8, 1.0),
     terrain="mountain",
@@ -142,7 +181,7 @@ def make_wind_streamlines(
     Returns (actor, tracer, calculator, tube_filter).
     """
 
-    # 1) Build vector array 'velocity' from u,v,w
+    # Build vector array 'velocity' from u,v,w
     calc = vtk.vtkArrayCalculator()
     calc.SetInputData(grid)
     calc.AddScalarVariable("u", "u")
@@ -152,7 +191,7 @@ def make_wind_streamlines(
     calc.SetResultArrayName("velocity")
     calc.Update()
 
-    # 2) Get grid bounds
+    # Get grid bounds
     bounds = grid.GetBounds()
     x_min, x_max, y_min, y_max, z_min, z_max = bounds
 
@@ -172,7 +211,7 @@ def make_wind_streamlines(
     seed_poly = vtk.vtkPolyData()
     seed_poly.SetPoints(seeds)
 
-    # 3) Stream tracer
+    # Stream tracer
     rk4 = vtk.vtkRungeKutta4()
     tracer = vtk.vtkStreamTracer()
     tracer.SetInputConnection(calc.GetOutputPort())
@@ -188,36 +227,33 @@ def make_wind_streamlines(
     )
     tracer.Update()
 
-    # 4) Tube filter for better visualization
+    # Tube filter for better visualization
     tube = vtk.vtkTubeFilter()
     tube.SetInputConnection(tracer.GetOutputPort())
-    tube.SetNumberOfSides(8)
+    tube.SetNumberOfSides(20)
     tube.SetRadius(tube_radius)
     tube.CappingOn()
+    tube.SetUseDefaultNormal(False)
+    tube.SetVaryRadiusToVaryRadiusOff()
     tube.Update()
 
-    # 5) Mapper + actor
+    # Mapper + actor
     mapper = vtk.vtkPolyDataMapper()
     mapper.SetInputConnection(tube.GetOutputPort())
-    mapper.SetScalarModeToUsePointFieldData()
-    mapper.SelectColorArray("velocity")
 
-    # Create grayscale lookup table
-    lut = vtk.vtkLookupTable()
-    lut.SetNumberOfTableValues(256)
-    lut.Build()
-
-    for i in range(256):
-        gray = i / 255.0
-        lut.SetTableValue(i, gray, gray, gray, 1.0)  # r,g,b,a
-
-    mapper.SetLookupTable(lut)
-    mapper.SetUseLookupTableScalarRange(True)
+    # Disable scalar coloring
+    mapper.ScalarVisibilityOff()
 
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
-    # actor.GetProperty().SetColor(*color)
-    actor.GetProperty().SetOpacity(0.5)
+
+    # Set a constant gray color
+    actor.GetProperty().SetColor(color)  # mid gray
+    actor.GetProperty().SetOpacity(0.17)
+    print(grid.GetBounds())
+
+    # disable lighting so it doesn't look darker from some angles
+    actor.GetProperty().LightingOff()
 
     return actor, tracer, calc, tube
 
