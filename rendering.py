@@ -30,7 +30,7 @@ def setup_camera(renderer):
     renderer.ResetCameraClippingRange()
 
 
-def make_window_and_interactor(renderer, size=(2000, 1440)):
+def make_window_and_interactor(renderer, size=(1800, 1400)):
     """Makes window and interactor."""
     render_window = vtk.vtkRenderWindow()
     render_window.AddRenderer(renderer)

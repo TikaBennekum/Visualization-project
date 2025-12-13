@@ -11,7 +11,7 @@ File description:
 #!/usr/bin/env vtkpython
 import vtk
 
-from animation import get_all_files
+from animation import create_frames, get_all_files
 from fire_smoke import make_fire_legend, make_fire_smoke_actors
 from geometry import create_plane
 from labels import make_timestep_text, make_title
@@ -22,6 +22,7 @@ from wind import (
     make_wind_arrow,
     make_wind_speed_follower,
     make_wind_streamlines,
+    wind_speed,
 )
 
 TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
@@ -34,7 +35,7 @@ if TERRAIN_TYPE == "valley":
 else:
     directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}curve{CURVATURE}"
 
-filename = f"{directory}/output.10000.vts"
+filename = f"{directory}/output.1000.vts"
 
 
 reader = vtk.vtkXMLGenericDataObjectReader()
@@ -102,19 +103,12 @@ setup_camera(renderer)
 render_window, interactor = make_window_and_interactor(renderer)
 
 # create a 3D follower speed label above the arrow (sticks in world space)
-from wind import wind_speed
-
 spd = wind_speed(mean_u, mean_v, mean_w)
 wind_label = make_wind_speed_follower(
     renderer,
     wind_actor,
     speed_value=spd,
-    unit="m/s",
-    height_offset_factor=0.25,
 )
-
-# If you later update the wind vector, also call update_wind_speed_follower
-# to keep the label text/position in sync.
 
 render_window.Render()
 interactor.Initialize()
@@ -134,12 +128,13 @@ filters = {
 
 files = get_all_files(directory)
 
-# create_frames(
-#     reader,
-#     render_window,
-#     filters,
-#     timestamp_actor,
-#     wind,
-#     (stream_actor, stream_tracer, stream_calc, stream_tube),
-#     files,
-# )
+create_frames(
+    reader,
+    render_window,
+    filters,
+    timestamp_actor,
+    wind,
+    wind_label,
+    (stream_actor, stream_tracer, stream_calc, stream_tube),
+    files,
+)

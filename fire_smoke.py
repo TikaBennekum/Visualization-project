@@ -116,9 +116,9 @@ def make_fire_legend(levels):
     colors = list(get_fire_colors().values())
 
     # Legend layout (NDC coordinates)
-    x0 = 0.1  # left position
-    y0 = 0.85  # top position
-    dy = 0.06  # vertical spacing
+    x0 = 0.68  # left position
+    y0 = 0.8  # top position
+    dy = 0.03  # vertical spacing
     sq_px = 24  # square size (pixels)
 
     # -------------------------
@@ -132,8 +132,8 @@ def make_fire_legend(levels):
     bg_polys = vtk.vtkCellArray()
 
     # Width/height of box in pixels
-    box_w = 400
-    box_h = int(60 + len(levels) * 85)
+    box_w = 260
+    box_h = int((len(levels) + 1) * 50)
 
     bg_pts.InsertNextPoint(0, 0, 0)
     bg_pts.InsertNextPoint(box_w, 0, 0)
@@ -213,9 +213,9 @@ def make_fire_legend(levels):
 
         # --- Label text ---
         text = vtk.vtkTextActor()
-        text.SetInput(f"{temp:.1f} K")
+        text.SetInput(f"{temp:.0f} K")
         text.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-        text.SetPosition(x0 + 0.04, y + 0.002)
+        text.SetPosition(x0 + 0.04, y - 0.001)
 
         tp = text.GetTextProperty()
         tp.SetColor(1, 1, 1)

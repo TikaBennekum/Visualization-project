@@ -22,7 +22,7 @@ def make_title(
     tp.SetJustificationToCentered()
 
     title.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-    title.SetPosition(0.5, 0.95)  # centered at top
+    title.SetPosition(0.5, 0.92)  # centered at top
 
     terrain = terrain_type.lower()
 
@@ -47,15 +47,15 @@ def make_title(
     sub_prop.SetJustificationToCentered()
 
     subtitle.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-    subtitle.SetPosition(0.5, 0.92)
+    subtitle.SetPosition(0.5, 0.89)
 
     return title, subtitle
 
 
-def make_timestep_text():
+def make_timestep_text(timestep=1000):
     """Creates a text actor that will display the timestep."""
     txt = vtk.vtkTextActor()
-    txt.SetInput("Time step: 0")
+    txt.SetInput(f"Time: {timestep / 100:.0f} s")
 
     tp = txt.GetTextProperty()
     tp.SetFontSize(28)
@@ -65,11 +65,11 @@ def make_timestep_text():
     tp.SetJustificationToCentered()
 
     txt.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-    txt.SetPosition(0.5, 0.89)
+    txt.SetPosition(0.5, 0.85)
 
     return txt
 
 
 def update_timestep_text(actor, timestep):
     """Updates the text content according to timestep."""
-    actor.SetInput(f"Time step: {timestep}")
+    actor.SetInput(f"Time: {timestep / 100:.0f} s")

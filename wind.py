@@ -68,70 +68,6 @@ def wind_speed(mean_u, mean_v, mean_w):
     return float(np.sqrt(mean_u**2 + mean_v**2 + mean_w**2))
 
 
-def make_wind_speed_label(
-    renderer,
-    render_window,
-    wind_actor,
-    unit="m/s",
-    color=(1, 1, 1),
-    font_size=18,
-    pixel_offset=(21, 15),
-):
-    """
-    Creates wind speed label to put above arrow.
-    """
-    text = vtk.vtkTextActor()
-    text.SetInput("")  # set later
-    tp = text.GetTextProperty()
-    tp.SetColor(*color)
-    tp.SetFontSize(font_size)
-    tp.BoldOn()
-    tp.ShadowOn()
-
-    renderer.AddActor2D(text)
-
-    update_wind_speed_label(
-        text,
-        renderer,
-        render_window,
-        wind_actor,
-        speed_value=0.0,
-        unit=unit,
-        pixel_offset=pixel_offset,
-    )
-    return text
-
-
-def update_wind_speed_label(
-    text_actor,
-    renderer,
-    render_window,
-    wind_actor,
-    speed_value,
-    unit="m/s",
-    pixel_offset=(21, 15),
-):
-    """
-    Updates label text + positions it above the arrow based on the arrow's position.
-    """
-    text_actor.SetInput(f"{speed_value:.2f} {unit}")
-
-    # changes arrow coordinations
-    x, y, z = wind_actor.GetPosition()
-    renderer.SetWorldPoint(x, y, z, 1.0)
-    renderer.WorldToDisplay()
-    dx, dy, _ = renderer.GetDisplayPoint()
-
-    text_actor.SetDisplayPosition(int(dx + pixel_offset[0]), int(dy + pixel_offset[1]))
-
-    # keep it inside the window bounds
-    w, h = render_window.GetSize()
-    pos = text_actor.GetPosition()
-    clamped_x = max(0, min(int(pos[0]), max(0, w - 1)))
-    clamped_y = max(0, min(int(pos[1]), max(0, h - 1)))
-    text_actor.SetDisplayPosition(clamped_x, clamped_y)
-
-
 # 3D follower-style label that sticks to the wind arrow in world space
 def make_wind_speed_follower(
     renderer,
@@ -139,7 +75,7 @@ def make_wind_speed_follower(
     speed_value=0.0,
     unit="m/s",
     color=(1, 1, 1),
-    height_offset_factor=0.2,
+    height_offset_factor=0.25,
     x_offset_factor=-0.3,
     scale=20.0,
 ):
@@ -159,7 +95,6 @@ def make_wind_speed_follower(
     # Position above the arrow
     update_wind_speed_follower(
         follower,
-        renderer,
         wind_actor,
         speed_value,
         unit,
@@ -173,11 +108,10 @@ def make_wind_speed_follower(
 
 def update_wind_speed_follower(
     text_actor,
-    renderer,
     wind_actor,
     speed_value,
     unit="m/s",
-    height_offset_factor=0.2,
+    height_offset_factor=0.25,
     x_offset_factor=-0.3,
 ):
     # Update text if mapper supports VectorText input; else ignore text update
@@ -201,12 +135,6 @@ def update_wind_speed_follower(
         # fallback to actor position
         x, y, z = wind_actor.GetPosition()
         text_actor.SetPosition(x, y, z)
-
-    # ensure it faces the camera
-    try:
-        text_actor.SetCamera(renderer.GetActiveCamera())
-    except Exception:
-        pass
 
 
 def normalise_vector(vec):
