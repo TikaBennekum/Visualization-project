@@ -58,7 +58,7 @@ def make_timestep_text(timestep=1000):
     timestap_seconds = timestep // 100
     minutes = timestap_seconds // 60
     seconds = timestap_seconds % 60
-    txt.SetInput(f"Simulation time: {minutes:d} min {seconds:02d} s")
+    txt.SetInput(f"Time elapsed: {minutes:d} min {seconds:02d} s")
 
     tp = txt.GetTextProperty()
     tp.SetFontSize(28)
@@ -78,4 +78,4 @@ def update_timestep_text(actor, timestep):
     timestap_seconds = timestep // 100
     minutes = timestap_seconds // 60
     seconds = timestap_seconds % 60
-    actor.SetInput(f"Simulation time: {minutes:d} min {seconds:02d} s")
+    actor.SetInput(f"Time elapsed: {minutes:d} min {seconds:02d} s")

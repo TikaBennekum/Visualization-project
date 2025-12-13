@@ -10,7 +10,7 @@ File description:
 import vtk
 
 
-def make_renderer(background=(0.1, 0.1, 0.15)):
+def make_renderer(background=(0.2, 0.2, 0.25)):
     """Initiliazes rendering."""
     renderer = vtk.vtkRenderer()
     renderer.SetBackground(*background)
@@ -30,20 +30,14 @@ def setup_camera(renderer):
     renderer.ResetCameraClippingRange()
 
 
-def make_window_and_interactor(renderer, size=(1800, 1400)):
+def make_window_and_interactor(size=(1800, 1400)):
     """Makes window and interactor."""
     render_window = vtk.vtkRenderWindow()
-    render_window.AddRenderer(renderer)
     render_window.SetSize(*size)
 
     # transparency settings
     render_window.SetAlphaBitPlanes(1)
     render_window.SetMultiSamples(0)
-
-    # background
-    renderer.SetBackground(0.2, 0.2, 0.25)
-    renderer.SetBackground2(0.5, 0.5, 0.6)
-    renderer.GradientBackgroundOn()
 
     interactor = vtk.vtkRenderWindowInteractor()
     interactor.SetRenderWindow(render_window)

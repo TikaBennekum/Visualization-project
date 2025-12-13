@@ -35,7 +35,7 @@ if TERRAIN_TYPE == "valley":
 else:
     directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}curve{CURVATURE}"
 
-filename = f"{directory}/output.1000.vts"
+filename = f"{directory}/output.50000.vts"
 
 
 reader = vtk.vtkXMLGenericDataObjectReader()
@@ -80,6 +80,7 @@ if stream_actor is not None:
 for actor in fire_smoke_actors:
     renderer.AddActor(actor)
 
+# Adds fire legend
 legend = make_fire_legend(levels)
 
 for item in legend:
@@ -100,7 +101,8 @@ renderer.AddActor(wind_actor)
 
 # Interactive rendering
 setup_camera(renderer)
-render_window, interactor = make_window_and_interactor(renderer)
+render_window, interactor = make_window_and_interactor()
+render_window.AddRenderer(renderer)
 
 # create a 3D follower speed label above the arrow (sticks in world space)
 spd = wind_speed(mean_u, mean_v, mean_w)
