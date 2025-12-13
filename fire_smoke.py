@@ -213,7 +213,7 @@ def make_fire_legend(levels):
 
         # --- Label text ---
         text = vtk.vtkTextActor()
-        text.SetInput(f"{temp:.0f} K")
+        text.SetInput(f"~ {temp:.0f} K")
         text.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
         text.SetPosition(x0 + 0.04, y - 0.001)
 
