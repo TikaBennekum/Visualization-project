@@ -22,7 +22,7 @@ def make_title(
     tp.SetJustificationToCentered()
 
     title.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-    title.SetPosition(0.5, 0.95)  # centered at top
+    title.SetPosition(0.5, 0.92)  # centered at top
 
     terrain = terrain_type.lower()
 
@@ -33,7 +33,7 @@ def make_title(
             raise ValueError("Mountain simulations require fire_type.")
         if curvature is None:
             raise ValueError("Mountain simulations require curvature.")
-        text = f"Mountain — {fire_type.capitalize()} (Curvature {curvature})"
+        text = f"Mountain — {fire_type.capitalize()}fire (Curvature {curvature})"
     else:
         raise ValueError("terrain_type must be 'mountain' or 'valley'")
 
@@ -47,15 +47,18 @@ def make_title(
     sub_prop.SetJustificationToCentered()
 
     subtitle.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-    subtitle.SetPosition(0.5, 0.92)
+    subtitle.SetPosition(0.5, 0.89)
 
     return title, subtitle
 
 
-def make_timestep_text():
+def make_timestep_text(timestep=1000):
     """Creates a text actor that will display the timestep."""
     txt = vtk.vtkTextActor()
-    txt.SetInput("Time step: 0")
+    timestap_seconds = timestep // 100
+    minutes = timestap_seconds // 60
+    seconds = timestap_seconds % 60
+    txt.SetInput(f"Simulation time: {minutes:d} min {seconds:02d} s")
 
     tp = txt.GetTextProperty()
     tp.SetFontSize(28)
@@ -65,11 +68,14 @@ def make_timestep_text():
     tp.SetJustificationToCentered()
 
     txt.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-    txt.SetPosition(0.5, 0.89)
+    txt.SetPosition(0.5, 0.85)
 
     return txt
 
 
 def update_timestep_text(actor, timestep):
     """Updates the text content according to timestep."""
-    actor.SetInput(f"Time step: {timestep}")
+    timestap_seconds = timestep // 100
+    minutes = timestap_seconds // 60
+    seconds = timestap_seconds % 60
+    actor.SetInput(f"Simulation time: {minutes:d} min {seconds:02d} s")

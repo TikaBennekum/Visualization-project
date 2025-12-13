@@ -14,7 +14,13 @@ import re
 import vtk
 
 from labels import update_timestep_text
-from wind import compute_mean_wind_direction, update_wind_arrow, update_wind_streamlines
+from wind import (
+    compute_mean_wind_direction,
+    update_wind_arrow,
+    update_wind_speed_follower,
+    update_wind_streamlines,
+    wind_speed,
+)
 
 
 def setup_frame(render_window):
@@ -53,7 +59,14 @@ def create_animation_directory():
 
 
 def create_frames(
-    reader, render_window, filters, timestamp_actor, wind, stream_tuple, files
+    reader,
+    render_window,
+    filters,
+    timestamp_actor,
+    wind,
+    wind_label,
+    stream_tuple,
+    files,
 ):
     create_animation_directory()
     w2if, png = setup_frame(render_window)
@@ -76,6 +89,18 @@ def create_frames(
             mean_v,
             mean_w,
         )
+
+        speed_value = wind_speed(mean_u, mean_v, mean_w)
+        update_wind_speed_follower(
+            wind_label,
+            wind[0],
+            speed_value,
+            unit="m/s",
+            height_offset_factor=0.2,
+            x_offset_factor=-0.3,
+        )
+
+        # Update wind streamlines
         update_wind_streamlines(stream_tuple, grid)
 
         # Update all filters at once

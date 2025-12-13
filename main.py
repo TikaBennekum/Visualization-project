@@ -11,34 +11,31 @@ File description:
 #!/usr/bin/env vtkpython
 import vtk
 
-from animation import get_all_files
-from fire_smoke import (
-    make_fire_smoke_actors,
-    make_temperature_lut,
-    make_temperature_scalar_bar,
-)
-from geometry import create_plane, make_outline_actor
+from animation import create_frames, get_all_files
+from fire_smoke import make_fire_legend, make_fire_smoke_actors
+from geometry import create_plane
 from labels import make_timestep_text, make_title
 from rendering import make_renderer, make_window_and_interactor, setup_camera
-from vegetation import make_vegetation_actor, make_vegetation_scalar_bar
+from vegetation import make_vegetation_actor
 from wind import (
     compute_mean_wind_direction,
     make_wind_arrow,
+    make_wind_speed_follower,
     make_wind_streamlines,
-    make_wind_speed_label
+    wind_speed,
 )
 
 TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
-FIRE_TYPE = "backcurve"  # "backcurve" or "headcurve" -- only used for mountain
+FIRE_TYPE = "back"  # "back" or "head" -- only used for mountain
 CURVATURE = 40  # curvature value for mountain simulations -- 40, 80, or 320 -- only used for mountain
 
 # Reading the VTS dataset
 if TERRAIN_TYPE == "valley":
     directory = f"{TERRAIN_TYPE}"
 else:
-    directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}{CURVATURE}"
+    directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}curve{CURVATURE}"
 
-filename = f"{directory}/output.20000.vts"
+filename = f"{directory}/output.1000.vts"
 
 
 reader = vtk.vtkXMLGenericDataObjectReader()
@@ -49,12 +46,9 @@ grid = reader.GetOutput()
 # Get scalar field that represents potential temperature
 theta_name = "theta"
 theta = grid.GetPointData().GetArray(theta_name)
-theta_min, theta_max = theta.GetRange()
 
 # Initializes rendering
 renderer = make_renderer()
-outline_actor = make_outline_actor(grid)
-renderer.AddActor(outline_actor)
 
 # Adds title
 title, subtitle = make_title(TERRAIN_TYPE, fire_type=FIRE_TYPE, curvature=CURVATURE)
@@ -67,9 +61,7 @@ renderer.AddViewProp(timestamp_actor)
 
 # Adds vegetation to the visualization
 vegetation_actor, vegetation_lut, vegetation_contour = make_vegetation_actor(grid)
-vegetation_bar = make_vegetation_scalar_bar(vegetation_lut)
 renderer.AddActor(vegetation_actor)
-renderer.AddViewProp(vegetation_bar)
 
 # Creates black plane (burnt ground)
 ground_actor, ground_slice = create_plane(grid)
@@ -77,26 +69,32 @@ renderer.AddActor(ground_actor)
 
 # Adds wind streamlines (detailed flow visualization)
 stream_actor, stream_tracer, stream_calc, stream_tube = make_wind_streamlines(
-    grid, num_seeds=17, tube_radius=4.0, color=(0.95,0.95,0.95), terrain=TERRAIN_TYPE
+    grid, num_seeds=17, tube_radius=4.0, color=(0.95, 0.95, 0.95), terrain=TERRAIN_TYPE
 )
 if stream_actor is not None:
     renderer.AddActor(stream_actor)
 
 # Adds fire and smoke to the visualization
-(levels, fire_smoke_actors, fire_contours) = make_fire_smoke_actors(
-    grid, theta_name, theta_min
-)
-low, mid, hi, higher, very_hi = levels
-fire_lut = make_temperature_lut(low, very_hi)
-temp_bar = make_temperature_scalar_bar(fire_lut)
+(levels, fire_smoke_actors, fire_contours) = make_fire_smoke_actors(grid, theta_name)
 
 for actor in fire_smoke_actors:
     renderer.AddActor(actor)
-renderer.AddViewProp(temp_bar)
+
+legend = make_fire_legend(levels)
+
+for item in legend:
+    if isinstance(item, tuple):
+        square, text = item
+        renderer.AddViewProp(square)
+        renderer.AddViewProp(text)
+    else:
+        renderer.AddViewProp(item)  # background box or title
 
 # Adds general wind arrow
 mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
-wind = make_wind_arrow(mean_u, mean_v, mean_w)   # <- keep as tuple (actor, transform, tf)
+wind = make_wind_arrow(
+    mean_u, mean_v, mean_w
+)  # <- keep as tuple (actor, transform, tf)
 wind_actor = wind[0]
 renderer.AddActor(wind_actor)
 
@@ -104,13 +102,13 @@ renderer.AddActor(wind_actor)
 setup_camera(renderer)
 render_window, interactor = make_window_and_interactor(renderer)
 
-# create the speed label (NOW render_window exists, and BEFORE Start())
-speed_label = make_wind_speed_label(renderer, render_window, wind_actor, unit="m/s")
-
-# (optional) set it to the current speed immediately
-from wind import wind_speed, update_wind_speed_label
+# create a 3D follower speed label above the arrow (sticks in world space)
 spd = wind_speed(mean_u, mean_v, mean_w)
-update_wind_speed_label(speed_label, renderer, render_window, wind_actor, spd, unit="m/s")
+wind_label = make_wind_speed_follower(
+    renderer,
+    wind_actor,
+    speed_value=spd,
+)
 
 render_window.Render()
 interactor.Initialize()
@@ -130,12 +128,13 @@ filters = {
 
 files = get_all_files(directory)
 
-# create_frames(
-#     reader,
-#     render_window,
-#     filters,
-#     timestamp_actor,
-#     (wind_actor, wind_transform, wind_tf_filter),
-#     (stream_actor, stream_tracer, stream_calc, stream_tube),
-#     files,
-# )
+create_frames(
+    reader,
+    render_window,
+    filters,
+    timestamp_actor,
+    wind,
+    wind_label,
+    (stream_actor, stream_tracer, stream_calc, stream_tube),
+    files,
+)

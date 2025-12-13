@@ -64,50 +64,78 @@ def make_wind_arrow(
 
 
 def wind_speed(mean_u, mean_v, mean_w):
-    """ Calulates wind speed."""
+    """Calulates wind speed."""
     return float(np.sqrt(mean_u**2 + mean_v**2 + mean_w**2))
 
-def make_wind_speed_label(renderer, render_window, wind_actor,
-                          unit="m/s", color=(1, 1, 1),
-                          font_size=18, pixel_offset=(21, 15)):
-    """
-    Creates wind speed label to put above arrow.
-    """
-    text = vtk.vtkTextActor()
-    text.SetInput("")  # set later
-    tp = text.GetTextProperty()
-    tp.SetColor(*color)
-    tp.SetFontSize(font_size)
-    tp.BoldOn()
-    tp.ShadowOn()
 
-    renderer.AddActor2D(text)
+# 3D follower-style label that sticks to the wind arrow in world space
+def make_wind_speed_follower(
+    renderer,
+    wind_actor,
+    speed_value=0.0,
+    unit="m/s",
+    color=(1, 1, 1),
+    height_offset_factor=0.25,
+    x_offset_factor=-0.3,
+    scale=20.0,
+):
+    # Use vtkFollower so the text always faces the camera and supports SetCamera
+    vector_text = vtk.vtkVectorText()
+    vector_text.SetText(f"{speed_value:.2f} {unit}")
 
-    update_wind_speed_label(text, renderer, render_window, wind_actor,
-                            speed_value=0.0, unit=unit, pixel_offset=pixel_offset)
-    return text
+    mapper = vtk.vtkPolyDataMapper()
+    mapper.SetInputConnection(vector_text.GetOutputPort())
 
-def update_wind_speed_label(text_actor, renderer, render_window, wind_actor,
-                            speed_value, unit="m/s", pixel_offset=(21, 15)):
-    """
-    Updates label text + positions it above the arrow based on the arrow's position.
-    """
-    text_actor.SetInput(f"{speed_value:.2f} {unit}")
+    follower = vtk.vtkFollower()
+    follower.SetMapper(mapper)
+    follower.GetProperty().SetColor(*color)
+    # VectorText units are small; scale up generously
+    follower.SetScale(scale, scale, scale)
 
-    # changes arrow coordinations
-    x, y, z = wind_actor.GetPosition()
-    renderer.SetWorldPoint(x, y, z, 1.0)
-    renderer.WorldToDisplay()
-    dx, dy, _ = renderer.GetDisplayPoint()
+    # Position above the arrow
+    update_wind_speed_follower(
+        follower,
+        wind_actor,
+        speed_value,
+        unit,
+        height_offset_factor,
+        x_offset_factor,
+    )
+    follower.SetCamera(renderer.GetActiveCamera())
+    renderer.AddActor(follower)
+    return follower
 
-    text_actor.SetDisplayPosition(int(dx + pixel_offset[0]), int(dy + pixel_offset[1]))
 
-    # keep it inside the window bounds
-    w, h = render_window.GetSize()
-    pos = text_actor.GetPosition()
-    clamped_x = max(0, min(int(pos[0]), max(0, w - 1)))
-    clamped_y = max(0, min(int(pos[1]), max(0, h - 1)))
-    text_actor.SetDisplayPosition(clamped_x, clamped_y)
+def update_wind_speed_follower(
+    text_actor,
+    wind_actor,
+    speed_value,
+    unit="m/s",
+    height_offset_factor=0.25,
+    x_offset_factor=-0.3,
+):
+    # Update text if mapper supports VectorText input; else ignore text update
+    try:
+        mapper = text_actor.GetMapper()
+        src = mapper.GetInputConnection(0, 0).GetProducer()
+        if isinstance(src, vtk.vtkVectorText):
+            src.SetText(f"{speed_value:.2f} {unit}")
+    except Exception:
+        pass
+
+    # Compute a position just above the arrow's top in world coordinates
+    try:
+        bx0, bx1, by0, by1, bz0, bz1 = wind_actor.GetBounds()
+        width = bx1 - bx0
+        cx = 0.5 * (bx0 + bx1) + width * x_offset_factor
+        cy = 0.5 * (by0 + by1)
+        z_offset = (bz1 - bz0) * height_offset_factor
+        text_actor.SetPosition(cx, cy, bz1 + z_offset)
+    except Exception:
+        # fallback to actor position
+        x, y, z = wind_actor.GetPosition()
+        text_actor.SetPosition(x, y, z)
+
 
 def normalise_vector(vec):
     """
@@ -250,7 +278,6 @@ def make_wind_streamlines(
     # Set a constant gray color
     actor.GetProperty().SetColor(color)  # mid gray
     actor.GetProperty().SetOpacity(0.17)
-    print(grid.GetBounds())
 
     # disable lighting so it doesn't look darker from some angles
     actor.GetProperty().LightingOff()
