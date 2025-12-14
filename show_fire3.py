@@ -11,7 +11,7 @@ File description:
 #!/usr/bin/env vtkpython
 import vtk
 
-from fire_smoke import make_fire_smoke_actors
+from fire_smoke import make_fire_legend, make_fire_smoke_actors
 from geometry import create_plane
 from labels import make_timestep_text, make_title
 from rendering import make_renderer, make_window_and_interactor, setup_camera
@@ -19,13 +19,15 @@ from vegetation import make_vegetation_actor
 from wind import (
     compute_mean_wind_direction,
     make_wind_arrow,
+    make_wind_speed_follower,
     make_wind_streamlines,
+    wind_speed,
 )
 
 # --- 1. CONFIGURATION ---
 STATIC_TIMESTEP = 10000
 
-# Define the viewports for a 2x4 grid (8 slots total: 7 sims + 1 legend)
+# Define the viewports for a 2x3 grid (6 slots total: 6 sims)
 VIEWPORTS = [
     (0.0, 0.5, 0.33, 1.0),  # Slot 0: Sim 1
     (0.33, 0.5, 0.66, 1.0),  # Slot 1: Sim 2
@@ -78,7 +80,7 @@ all_grids = []
 # --- 2. MULTI-VIEWPORT SETUP ---
 
 # Create the main window and interactor once
-render_window, interactor = make_window_and_interactor()  # Pass None initially
+render_window, interactor = make_window_and_interactor(size=(2400, 1800))
 
 # 2a. Loop through all 7 simulations
 for i, params in enumerate(SIMULATION_PARAMS):
@@ -128,6 +130,17 @@ for i, params in enumerate(SIMULATION_PARAMS):
     ground_actor, _ = create_plane(grid)
     renderer.AddActor(ground_actor)
 
+    # Wind Streamlines
+    stream_actor, _, _, _ = make_wind_streamlines(
+        grid,
+        num_seeds=15,
+        tube_radius=4.0,
+        color=(0.95, 0.95, 0.95),
+        terrain=params["terrain"],
+    )
+    if stream_actor is not None:
+        renderer.AddActor(stream_actor)
+
     # Fire and Smoke Actors (and creating global LUTs)
     (levels, fire_smoke_actors, fire_contours) = make_fire_smoke_actors(
         grid, theta_name
@@ -137,15 +150,16 @@ for i, params in enumerate(SIMULATION_PARAMS):
     for actor in fire_smoke_actors:
         renderer.AddActor(actor)
 
-    # legend = make_fire_legend(levels)
+    # Fire Legend
+    legend = make_fire_legend(levels)
 
-    # for item in legend:
-    #     if isinstance(item, tuple):
-    #         square, text = item
-    #         renderer.AddViewProp(square)
-    #         renderer.AddViewProp(text)
-    #     else:
-    #         renderer.AddViewProp(item)  # background box or title
+    for item in legend:
+        if isinstance(item, tuple):
+            square, text = item
+            renderer.AddViewProp(square)
+            renderer.AddViewProp(text)
+        else:
+            renderer.AddViewProp(item)  # background box or title
 
     # Wind Arrow
     mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
@@ -153,22 +167,8 @@ for i, params in enumerate(SIMULATION_PARAMS):
     renderer.AddActor(wind_actor)
 
     # Wind Speed Label
-    # speed_value = wind_speed(mean_u, mean_v, mean_w)
-    # wind_label = make_wind_speed_follower(
-    #     renderer,
-    #     wind_actor,
-    #     speed_value,
-    #     unit="m/s",
-    #     height_offset_factor=0.2,
-    #     x_offset_factor=-0.3,
-    # )
-
-    # Wind Streamlines
-    stream_actor, _, _, _ = make_wind_streamlines(
-        grid, num_seeds=20, tube_radius=2.0, terrain=params["terrain"]
-    )
-    if stream_actor is not None:
-        renderer.AddActor(stream_actor)
+    speed_value = wind_speed(mean_u, mean_v, mean_w)
+    wind_label = make_wind_speed_follower(renderer, wind_actor, speed_value, scale=35)
 
     # Set up camera for this renderer (will be synchronized later)
     setup_camera(renderer)
@@ -181,11 +181,10 @@ camera = all_renderers[0].GetActiveCamera()
 all_renderers[0].ResetCamera()
 
 # Apply this camera to all other simulation renderers (Slots 1-6)
-for renderer in all_renderers[1:7]:
+for renderer in all_renderers[1:]:
     renderer.SetActiveCamera(camera)
 
-# The legend renderer (Slot 7) does not need a 3D camera
-
+# Start the interaction
 render_window.Render()
 interactor.Initialize()
 interactor.Start()
