@@ -7,7 +7,6 @@ File description:
     Rendering of the scene of the visualization.
 """
 
-import glob
 import os
 import re
 
@@ -35,12 +34,20 @@ def setup_frame(render_window):
     return w2if, png
 
 
-def get_all_files(directory):
+def get_all_files(range):
     """Gets all VTS files in the dataset directory, sorted by time index."""
-    files = sorted(
-        glob.glob(f"{directory}/output.*.vts"),
-        key=extract_number,
-    )
+    files = []
+
+    for i in range:
+        one_step = []
+        one_step.append(f"mountain_headcurve40/output.{i}.vts")
+        one_step.append(f"mountain_headcurve80/output.{i}.vts")
+        one_step.append(f"mountain_headcurve320/output.{i}.vts")
+        one_step.append(f"mountain_backcurve40/output.{i}.vts")
+        one_step.append(f"mountain_backcurve80/output.{i}.vts")
+        one_step.append(f"mountain_backcurve320/output.{i}.vts")
+
+        files.append(one_step)
 
     print("Found frames:", len(files))
 
@@ -71,47 +78,46 @@ def create_frames(
     create_animation_directory()
     w2if, png = setup_frame(render_window)
 
-    for frame_id, fname in enumerate(files):
-        print(f"Frame {frame_id + 1}/{len(files)} → {fname}")
+    for frame_id, step in enumerate(files):
+        print(f"Frame {frame_id + 1}/{len(files)}")
 
-        reader.SetFileName(fname)
-        reader.Update()
-        grid = reader.GetOutput()
+        for i, fname in enumerate(step):
+            print(f" → {fname}")
+            reader.SetFileName(fname)
+            reader.Update()
+            grid = reader.GetOutput()
 
-        # Update timestep text
-        update_timestep_text(timestamp_actor, extract_number(fname))
+            # Update timestep text
+            update_timestep_text(timestamp_actor[i], extract_number(fname))
 
-        # Update wind arrow
-        mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
-        update_wind_arrow(
-            wind,
-            mean_u,
-            mean_v,
-            mean_w,
-        )
+            # Update wind arrow
+            mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
+            update_wind_arrow(
+                wind[i],
+                mean_u,
+                mean_v,
+                mean_w,
+            )
 
-        speed_value = wind_speed(mean_u, mean_v, mean_w)
-        update_wind_speed_follower(
-            wind_label,
-            wind[0],
-            speed_value,
-            unit="m/s",
-            height_offset_factor=0.2,
-            x_offset_factor=-0.3,
-        )
+            speed_value = wind_speed(mean_u, mean_v, mean_w)
+            update_wind_speed_follower(
+                wind_label[i],
+                wind[i][0],
+                speed_value,
+            )
 
-        # Update wind streamlines
-        update_wind_streamlines(stream_tuple, grid)
+            # Update wind streamlines
+            update_wind_streamlines(stream_tuple[i], grid)
 
-        # Update all filters at once
-        for f in filters.values():
-            f.SetInputData(grid)
-            f.Update()
+            # Update all filters at once
+            for f in filters[i].values():
+                f.SetInputData(grid)
+                f.Update()
 
         render_window.Render()
         w2if.Modified()
 
-        png.SetFileName(f"frames/frame_{frame_id:05d}.png")
+        png.SetFileName(f"frames_multiview/frame_{extract_number(fname)}.png")
         png.Write()
 
     print("\nDone writing PNG frames!")

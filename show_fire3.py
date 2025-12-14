@@ -11,6 +11,7 @@ File description:
 #!/usr/bin/env vtkpython
 import vtk
 
+from animation_multiview import create_frames, get_all_files
 from fire_smoke import make_fire_legend, make_fire_smoke_actors
 from geometry import create_plane
 from labels import make_timestep_text, make_title
@@ -71,18 +72,20 @@ SIMULATION_PARAMS = [
     },
 ]
 
-# Global LUTs for synchronization
 # These will be created once and shared by all scalar bars
-global_fire_lut = None
 all_renderers = []
-all_grids = []
+filters = []
+timestamp_actors = []
+wind_arrows = []
+wind_labels = []
+wind_streams = []
 
 # --- 2. MULTI-VIEWPORT SETUP ---
 
 # Create the main window and interactor once
 render_window, interactor = make_window_and_interactor(size=(2400, 1800))
 
-# 2a. Loop through all 7 simulations
+# 2a. Loop through all 6 simulations
 for i, params in enumerate(SIMULATION_PARAMS):
     # Determine directory and filename for the VTS file
     if params["terrain"] == "valley":
@@ -96,7 +99,6 @@ for i, params in enumerate(SIMULATION_PARAMS):
     reader.SetFileName(filename)
     reader.Update()
     grid = reader.GetOutput()
-    all_grids.append(grid)  # Store grid for potential animation later
 
     # Create a new renderer and set its viewport
     renderer = make_renderer()
@@ -104,8 +106,7 @@ for i, params in enumerate(SIMULATION_PARAMS):
     render_window.AddRenderer(renderer)
     all_renderers.append(renderer)
 
-    # --- ACTOR GENERATION (Same logic as before, but per renderer) ---
-
+    # --- ACTOR GENERATION ---
     # Get scalar field info
     theta_name = "theta"
     theta = grid.GetPointData().GetArray(theta_name)
@@ -122,7 +123,7 @@ for i, params in enumerate(SIMULATION_PARAMS):
     renderer.AddViewProp(timestamp_actor)
 
     # Vegetation Actor (and creating global LUTs)
-    vegetation_actor, _, _ = make_vegetation_actor(grid)
+    vegetation_actor, _, vegetation_contour = make_vegetation_actor(grid)
 
     renderer.AddActor(vegetation_actor)
 
@@ -131,15 +132,15 @@ for i, params in enumerate(SIMULATION_PARAMS):
     renderer.AddActor(ground_actor)
 
     # Wind Streamlines
-    stream_actor, _, _, _ = make_wind_streamlines(
+    wind_stream = make_wind_streamlines(
         grid,
         num_seeds=15,
         tube_radius=4.0,
         color=(0.95, 0.95, 0.95),
         terrain=params["terrain"],
     )
-    if stream_actor is not None:
-        renderer.AddActor(stream_actor)
+    if wind_stream[0] is not None:
+        renderer.AddActor(wind_stream[0])
 
     # Fire and Smoke Actors (and creating global LUTs)
     (levels, fire_smoke_actors, fire_contours) = make_fire_smoke_actors(
@@ -163,15 +164,33 @@ for i, params in enumerate(SIMULATION_PARAMS):
 
     # Wind Arrow
     mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
-    wind_actor, wind_transform, wind_tf_filter = make_wind_arrow(mean_u, mean_v, mean_w)
-    renderer.AddActor(wind_actor)
+    wind_arrow = make_wind_arrow(mean_u, mean_v, mean_w)
+    renderer.AddActor(wind_arrow[0])
 
     # Wind Speed Label
     speed_value = wind_speed(mean_u, mean_v, mean_w)
-    wind_label = make_wind_speed_follower(renderer, wind_actor, speed_value, scale=35)
+    wind_label = make_wind_speed_follower(
+        renderer, wind_arrow[0], speed_value, scale=35
+    )
 
     # Set up camera for this renderer (will be synchronized later)
     setup_camera(renderer)
+
+    # Store filters for animation
+    filters.append(
+        {
+            "veg": vegetation_contour,
+            "smoke_low": fire_contours[0],
+            "smoke_mid": fire_contours[1],
+            "fire_hi": fire_contours[2],
+            "fire_higher": fire_contours[3],
+            "fire_very_hi": fire_contours[4],
+        }
+    )
+    timestamp_actors.append(timestamp_actor)
+    wind_arrows.append(wind_arrow)
+    wind_labels.append(wind_label)
+    wind_streams.append(wind_stream)
 
 # --- 3. SYNCHRONIZATION AND INTERACTION ---
 
@@ -185,6 +204,21 @@ for renderer in all_renderers[1:]:
     renderer.SetActiveCamera(camera)
 
 # Start the interaction
-render_window.Render()
-interactor.Initialize()
-interactor.Start()
+# render_window.Render()
+# interactor.Initialize()
+# interactor.Start()
+
+
+# Animation
+files = get_all_files([10000, 20000])
+
+create_frames(
+    reader,
+    render_window,
+    filters,
+    timestamp_actors,
+    wind_arrows,
+    wind_labels,
+    wind_streams,
+    files,
+)
