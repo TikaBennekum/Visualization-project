@@ -128,7 +128,7 @@ def create_multiview_visualisation(
         grid = reader.GetOutput()
 
         # Create a new renderer and set its viewport
-        renderer = make_renderer()
+        renderer = make_renderer(visualisation_type="multiview")
         renderer.SetViewport(VIEWPORTS[i])
         render_window.AddRenderer(renderer)
         all_renderers.append(renderer)

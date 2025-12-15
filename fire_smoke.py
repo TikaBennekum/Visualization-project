@@ -103,7 +103,7 @@ def make_fire_smoke_actors(grid):
     )
 
 
-def make_fire_legend(levels, visualisation_type="singleview"):
+def make_fire_legend(levels, visualisation_type="multiview"):
     """
     Build a discrete legend showing each isocontour level as
     a colored square with a text label + a title + grey background box.

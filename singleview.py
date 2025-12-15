@@ -72,7 +72,7 @@ def create_singleview_visualisation(
     grid = reader.GetOutput()
 
     # Initializes rendering
-    renderer = make_renderer()
+    renderer = make_renderer(visualisation_type="singleview")
 
     # Adds title
     title, subtitle = make_title(terrain_type, fire_type, curvature)
