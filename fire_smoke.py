@@ -103,7 +103,7 @@ def make_fire_smoke_actors(grid):
     )
 
 
-def make_fire_legend(levels):
+def make_fire_legend(levels, visualisation_type="singleview"):
     """
     Build a discrete legend showing each isocontour level as
     a colored square with a text label + a title + grey background box.
@@ -130,8 +130,12 @@ def make_fire_legend(levels):
     bg_polys = vtk.vtkCellArray()
 
     # Width/height of box in pixels
-    box_w = 190
-    box_h = int((len(levels) + 1) * 32)
+    if visualisation_type == "singleview":
+        box_h = int((len(levels) + 1) * 50)
+        box_w = 250
+    else:
+        box_h = int((len(levels) + 1) * 32)
+        box_w = 190
 
     bg_pts.InsertNextPoint(0, 0, 0)
     bg_pts.InsertNextPoint(box_w, 0, 0)

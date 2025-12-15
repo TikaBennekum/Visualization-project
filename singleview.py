@@ -109,7 +109,7 @@ def create_singleview_visualisation(
         renderer.AddActor(actor)
 
     # Adds fire legend
-    legend = make_fire_legend(levels)
+    legend = make_fire_legend(levels, visualisation_type="singleview")
 
     for item in legend:
         if isinstance(item, tuple):

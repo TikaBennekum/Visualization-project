@@ -172,7 +172,7 @@ def create_multiview_visualisation(
             renderer.AddActor(actor)
 
         # Fire Legend
-        legend = make_fire_legend(levels)
+        legend = make_fire_legend(levels, "multiview")
 
         for item in legend:
             if isinstance(item, tuple):
