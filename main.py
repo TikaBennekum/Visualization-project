@@ -27,14 +27,14 @@ def prompt_user_settings():
 
     # Step 1: Choose visualization mode
     print("\n1. Choose visualization mode:")
-    print("   [1] Single-view (one topography)")
-    print("   [2] Multi-view (six topographies compared side-by-side)")
+    print("   [1] Multi-view (six topographies compared side-by-side)")
+    print("   [2] Single-view (one topography)")
     mode_choice = input("   Select (1 or 2): ").strip()
 
     if mode_choice == "2":
-        mode = "multi"
-    else:
         mode = "single"
+    else:
+        mode = "multi"
 
     # Step 2: Choose animation type
     print("\n2. Choose animation type:")
