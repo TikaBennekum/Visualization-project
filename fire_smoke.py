@@ -46,10 +46,10 @@ def make_iso_actor(grid, theta_name, iso_value, color, opacity):
 def get_fire_levels():
     """Defines at which level smoke is shown and at which level
     fire is shown."""
-    low = 305  # smoke (cool)
+    low = 302  # smoke (cool)
     mid = 310  # smoke (warmer)
-    hi = 400  # fire (hot)
-    higher = 500  # fire (hotter)
+    hi = 350  # fire (hot)
+    higher = 400  # fire (hotter)
     very_hi = 600  # fire (very hot)
 
     return low, mid, hi, higher, very_hi
