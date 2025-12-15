@@ -210,7 +210,8 @@ for renderer in all_renderers[1:]:
 
 
 # Animation
-files = get_all_files([10000, 20000])
+files = get_all_files([6000, 7000, 8000, 9000, 10000, 20000])
+# files = get_all_files([9000])
 
 create_frames(
     reader,
