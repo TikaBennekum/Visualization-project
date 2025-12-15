@@ -9,134 +9,171 @@ File description:
 """
 
 #!/usr/bin/env vtkpython
-import vtk
-
-from animation import create_frames, get_all_files
-from fire_smoke import make_fire_legend, make_fire_smoke_actors
-from geometry import create_plane
-from labels import make_timestep_text, make_title
-from rendering import make_renderer, make_window_and_interactor, setup_camera
-from vegetation import make_vegetation_actor
-from wind import (
-    compute_mean_wind_direction,
-    make_wind_arrow,
-    make_wind_speed_follower,
-    make_wind_streamlines,
-    wind_speed,
-)
-
-TERRAIN_TYPE = "mountain"  # "mountain" or "valley"
-FIRE_TYPE = "back"  # "back" or "head" -- only used for mountain
-CURVATURE = 40  # curvature value for mountain simulations -- 40, 80, or 320 -- only used for mountain
-
-# Reading the VTS dataset
-if TERRAIN_TYPE == "valley":
-    directory = f"{TERRAIN_TYPE}"
-else:
-    directory = f"{TERRAIN_TYPE}_{FIRE_TYPE}curve{CURVATURE}"
-
-filename = f"{directory}/output.50000.vts"
+from multiview import create_multiview_visualisation
+from singleview import create_singleview_visualisation
 
 
-reader = vtk.vtkXMLGenericDataObjectReader()
-reader.SetFileName(filename)
-reader.Update()
-grid = reader.GetOutput()
+def prompt_user_settings():
+    """
+    Interactive menu to prompt user for visualization mode and animation type.
+    Returns (mode, animation_type, params) where:
+      - mode: "single" or "multi"
+      - animation_type: "interactive" or "frames"
+      - params: dict of terrain/fire/curvature settings (used only for single-view)
+    """
+    print("\n" + "=" * 60)
+    print("WILDFIRE VISUALIZATION - SETUP MENU")
+    print("=" * 60)
 
-# Get scalar field that represents potential temperature
-theta_name = "theta"
-theta = grid.GetPointData().GetArray(theta_name)
+    # Step 1: Choose visualization mode
+    print("\n1. Choose visualization mode:")
+    print("   [1] Single-view (one topography)")
+    print("   [2] Multi-view (six topographies compared side-by-side)")
+    mode_choice = input("   Select (1 or 2): ").strip()
 
-# Initializes rendering
-renderer = make_renderer()
-
-# Adds title
-title, subtitle = make_title(TERRAIN_TYPE, fire_type=FIRE_TYPE, curvature=CURVATURE)
-renderer.AddViewProp(title)
-renderer.AddViewProp(subtitle)
-
-# Adds timestep text
-timestamp_actor = make_timestep_text()
-renderer.AddViewProp(timestamp_actor)
-
-# Adds vegetation to the visualization
-vegetation_actor, vegetation_lut, vegetation_contour = make_vegetation_actor(grid)
-renderer.AddActor(vegetation_actor)
-
-# Creates black plane (burnt ground)
-ground_actor, ground_slice = create_plane(grid)
-renderer.AddActor(ground_actor)
-
-# Adds wind streamlines (detailed flow visualization)
-stream_actor, stream_tracer, stream_calc, stream_tube = make_wind_streamlines(
-    grid, num_seeds=17, tube_radius=4.0, color=(0.95, 0.95, 0.95), terrain=TERRAIN_TYPE
-)
-if stream_actor is not None:
-    renderer.AddActor(stream_actor)
-
-# Adds fire and smoke to the visualization
-(levels, fire_smoke_actors, fire_contours) = make_fire_smoke_actors(grid, theta_name)
-
-for actor in fire_smoke_actors:
-    renderer.AddActor(actor)
-
-# Adds fire legend
-legend = make_fire_legend(levels)
-
-for item in legend:
-    if isinstance(item, tuple):
-        square, text = item
-        renderer.AddViewProp(square)
-        renderer.AddViewProp(text)
+    if mode_choice == "2":
+        mode = "multi"
     else:
-        renderer.AddViewProp(item)  # background box or title
+        mode = "single"
 
-# Adds general wind arrow
-mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
-wind = make_wind_arrow(
-    mean_u, mean_v, mean_w
-)  # <- keep as tuple (actor, transform, tf)
-wind_actor = wind[0]
-renderer.AddActor(wind_actor)
+    # Step 2: Choose animation type
+    print("\n2. Choose animation type:")
+    print("   [1] Interactive window (explore with mouse/keyboard)")
+    print("   [2] Generate animation frames (PNG sequence)")
+    anim_choice = input("   Select (1 or 2): ").strip()
 
-# Interactive rendering
-setup_camera(renderer)
-render_window, interactor = make_window_and_interactor()
-render_window.AddRenderer(renderer)
+    if anim_choice == "2":
+        animation_type = "frames"
+    else:
+        animation_type = "interactive"
 
-# create a 3D follower speed label above the arrow (sticks in world space)
-spd = wind_speed(mean_u, mean_v, mean_w)
-wind_label = make_wind_speed_follower(
-    renderer,
-    wind_actor,
-    speed_value=spd,
-)
+    # Step 3: For single-view, ask for simulation parameters
+    params = {
+        "terrain_type": "mountain",
+        "fire_type": "head",
+        "curvature": 80,
+        "timestep": 10000,
+        "timestep_start": 10000,
+        "timestep_end": 15000,
+    }
 
-render_window.Render()
-interactor.Initialize()
-interactor.Start()
+    if mode == "single":
+        print("\n3. Configure single-view simulation:")
+        print("   Terrain: [1] Mountain (default), [2] Valley")
+        terrain_choice = input("   Select (1 or 2): ").strip()
+        if terrain_choice == "2":
+            params["terrain_type"] = "valley"
+
+        if params["terrain_type"] == "mountain":
+            print("   Fire position: [1] Head (default), [2] Back")
+            fire_choice = input("   Select (1 or 2): ").strip()
+            if fire_choice == "2":
+                params["fire_type"] = "back"
+
+            print("   Curvature: [1] 40 (default), [2] 80, [3] 320")
+            curve_choice = input("   Select (1, 2, or 3): ").strip()
+            if curve_choice == "1":
+                params["curvature"] = 40
+            elif curve_choice == "3":
+                params["curvature"] = 320
+            # else default 80
+
+        if animation_type == "interactive":
+            print("\n   Enter timestep for interactive view:")
+            try:
+                timestep_input = int(
+                    input("   Timestep (default 10000): ").strip() or "10000"
+                )
+                params["timestep"] = timestep_input
+            except ValueError:
+                print("   Invalid input. Using default 10000.")
+                params["timestep"] = 10000
+        elif animation_type == "frames":
+            print("\n   Enter starting timesteps for animation frames:")
+            try:
+                start_input = int(
+                    input("   Starting timestep (default 10000): ").strip() or "10000"
+                )
+                params["timestep_start"] = start_input
+            except ValueError:
+                print("   Invalid input. Using defaults 10000 to 15000.")
+                params["timestep_start"] = 10000
+    else:
+        print("\n3. Configure multi-view simulation:")
+        if animation_type == "interactive":
+            print(
+                "   Enter a single timestep to visualize all 6 simulations at that point:"
+            )
+            try:
+                timestep_input = int(
+                    input("   Timestep (default 10000): ").strip() or "10000"
+                )
+                params["timesteps"] = [timestep_input]
+            except ValueError:
+                print("   Invalid input. Using default 10000.")
+                params["timesteps"] = [10000]
+        else:
+            print("   Enter starting and ending timesteps for animation frames:")
+            try:
+                start_input = int(
+                    input("   Starting timestep (default 10000): ").strip() or "10000"
+                )
+                end_input = int(
+                    input("   Ending timestep (default 15000): ").strip() or "15000"
+                )
+                if start_input > end_input:
+                    start_input, end_input = end_input, start_input
+                params["timestep_start"] = start_input
+                params["timestep_end"] = end_input
+                # For frames mode, we might generate multiple frames; store as range
+                params["timesteps"] = [start_input, end_input]
+            except ValueError:
+                print("   Invalid input. Using defaults 10000 to 30000.")
+                params["timestep_start"] = 10000
+                params["timestep_end"] = 30000
+                params["timesteps"] = [10000, 30000]
+
+    print("\n" + "=" * 60)
+    print(f"Mode: {mode.upper()}")
+    print(f"Animation: {animation_type.upper()}")
+    if mode == "single":
+        print(f"Terrain: {params['terrain_type'].upper()}")
+        if params["terrain_type"] == "mountain":
+            print(f"Fire: {params['fire_type'].upper()}")
+            print(f"Curvature: {params['curvature']}")
+        if animation_type == "interactive":
+            print(f"Timestep: {params['timestep']}")
+        else:
+            print(
+                f"Timestep range: {params['timestep_start']} to {params['timestep_end']}"
+            )
+    else:
+        if animation_type == "interactive":
+            print(f"Timestep: {params['timesteps'][0]}")
+        else:
+            print(
+                f"Timestep range: {params['timestep_start']} to {params['timestep_end']}"
+            )
+    print("=" * 60 + "\n")
+
+    return mode, animation_type, params
 
 
-# Animation
-filters = {
-    "veg": vegetation_contour,
-    "smoke_low": fire_contours[0],
-    "smoke_mid": fire_contours[1],
-    "fire_hi": fire_contours[2],
-    "fire_higher": fire_contours[3],
-    "fire_very_hi": fire_contours[4],
-    "ground": ground_slice,
-}
+if __name__ == "__main__":
+    # Prompt user for settings
+    mode, animation_type, params = prompt_user_settings()
 
-files = get_all_files(directory)
-
-create_frames(
-    reader,
-    render_window,
-    filters,
-    timestamp_actor,
-    wind,
-    wind_label,
-    (stream_actor, stream_tracer, stream_calc, stream_tube),
-    files,
-)
+    if mode == "multi":
+        create_multiview_visualisation(
+            animation=(animation_type == "frames"),
+            timestep_start=params["timestep_start"],
+            timestep_end=params["timestep_end"],
+        )
+    else:
+        create_singleview_visualisation(
+            animation=(animation_type == "frames"),
+            terrain_type=params["terrain_type"],
+            fire_type=params["fire_type"],
+            curvature=params["curvature"],
+            timestep=params["timestep"],
+        )

@@ -10,7 +10,7 @@ File description:
 import vtk
 
 
-def make_iso_actor(grid, theta_name, iso_value, color, opacity):
+def make_iso_actor(grid, iso_value, color, opacity):
     """Makes iso actor."""
     contour = vtk.vtkContourFilter()
     contour.SetInputData(grid)
@@ -19,7 +19,7 @@ def make_iso_actor(grid, theta_name, iso_value, color, opacity):
         0,
         0,
         vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS,
-        theta_name,
+        "theta",
     )
     contour.SetValue(0, iso_value)
 
@@ -65,25 +65,23 @@ def get_fire_colors():
     }
 
 
-def make_fire_smoke_actors(grid, theta_name):
+def make_fire_smoke_actors(grid):
     """Creates fire and smoke actors."""
     low, mid, hi, higher, very_hi = get_fire_levels()
     colors = get_fire_colors()
 
     smoke_low, smoke_contour_low = make_iso_actor(
-        grid, theta_name, low, colors["low"], 0.15
+        grid, low, colors["low"], 0.15
     )  # light gray
     smoke_mid, smoke_contour_mid = make_iso_actor(
-        grid, theta_name, mid, colors["mid"], 0.30
+        grid, mid, colors["mid"], 0.30
     )  # dark grey
-    fire_hi, fire_contour_hi = make_iso_actor(
-        grid, theta_name, hi, colors["hi"], 0.60
-    )  # red
+    fire_hi, fire_contour_hi = make_iso_actor(grid, hi, colors["hi"], 0.60)  # red
     fire_higher, fire_contour_higher = make_iso_actor(
-        grid, theta_name, higher, colors["higher"], 0.70
+        grid, higher, colors["higher"], 0.70
     )  # orange
     fire_very_hi, fire_contour_very_hi = make_iso_actor(
-        grid, theta_name, very_hi, colors["very_hi"], 0.80
+        grid, very_hi, colors["very_hi"], 0.80
     )  # yellow
 
     return (
