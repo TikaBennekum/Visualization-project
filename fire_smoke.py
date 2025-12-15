@@ -10,7 +10,7 @@ File description:
 import vtk
 
 
-def make_iso_actor(grid, theta_name, iso_value, color, opacity):
+def make_iso_actor(grid, iso_value, color, opacity):
     """Makes iso actor."""
     contour = vtk.vtkContourFilter()
     contour.SetInputData(grid)
@@ -19,7 +19,7 @@ def make_iso_actor(grid, theta_name, iso_value, color, opacity):
         0,
         0,
         vtk.vtkDataObject.FIELD_ASSOCIATION_POINTS,
-        theta_name,
+        "theta",
     )
     contour.SetValue(0, iso_value)
 
@@ -47,10 +47,10 @@ def get_fire_levels():
     """Defines at which level smoke is shown and at which level
     fire is shown."""
     low = 302  # smoke (cool)
-    mid = 304  # smoke (warmer)
-    hi = 306  # fire (hot)
-    higher = 307  # fire (hotter)
-    very_hi = 325  # fire (very hot)
+    mid = 310  # smoke (warmer)
+    hi = 350  # fire (hot)
+    higher = 400  # fire (hotter)
+    very_hi = 600  # fire (very hot)
 
     return low, mid, hi, higher, very_hi
 
@@ -65,25 +65,23 @@ def get_fire_colors():
     }
 
 
-def make_fire_smoke_actors(grid, theta_name):
+def make_fire_smoke_actors(grid):
     """Creates fire and smoke actors."""
     low, mid, hi, higher, very_hi = get_fire_levels()
     colors = get_fire_colors()
 
     smoke_low, smoke_contour_low = make_iso_actor(
-        grid, theta_name, low, colors["low"], 0.15
+        grid, low, colors["low"], 0.15
     )  # light gray
     smoke_mid, smoke_contour_mid = make_iso_actor(
-        grid, theta_name, mid, colors["mid"], 0.30
+        grid, mid, colors["mid"], 0.30
     )  # dark grey
-    fire_hi, fire_contour_hi = make_iso_actor(
-        grid, theta_name, hi, colors["hi"], 0.60
-    )  # red
+    fire_hi, fire_contour_hi = make_iso_actor(grid, hi, colors["hi"], 0.60)  # red
     fire_higher, fire_contour_higher = make_iso_actor(
-        grid, theta_name, higher, colors["higher"], 0.70
+        grid, higher, colors["higher"], 0.70
     )  # orange
     fire_very_hi, fire_contour_very_hi = make_iso_actor(
-        grid, theta_name, very_hi, colors["very_hi"], 0.80
+        grid, very_hi, colors["very_hi"], 0.80
     )  # yellow
 
     return (
@@ -105,7 +103,7 @@ def make_fire_smoke_actors(grid, theta_name):
     )
 
 
-def make_fire_legend(levels):
+def make_fire_legend(levels, visualisation_type="multiview"):
     """
     Build a discrete legend showing each isocontour level as
     a colored square with a text label + a title + grey background box.
@@ -116,8 +114,8 @@ def make_fire_legend(levels):
     colors = list(get_fire_colors().values())
 
     # Legend layout (NDC coordinates)
-    x0 = 0.68  # left position
-    y0 = 0.8  # top position
+    x0 = 0.75  # left position
+    y0 = 0.75  # top position
     dy = 0.03  # vertical spacing
     sq_px = 24  # square size (pixels)
 
@@ -132,8 +130,12 @@ def make_fire_legend(levels):
     bg_polys = vtk.vtkCellArray()
 
     # Width/height of box in pixels
-    box_w = 260
-    box_h = int((len(levels) + 1) * 50)
+    if visualisation_type == "singleview":
+        box_h = int((len(levels) + 1) * 50)
+        box_w = 250
+    else:
+        box_h = int((len(levels) + 1) * 32)
+        box_w = 190
 
     bg_pts.InsertNextPoint(0, 0, 0)
     bg_pts.InsertNextPoint(box_w, 0, 0)
@@ -169,7 +171,7 @@ def make_fire_legend(levels):
 
     tp = title.GetTextProperty()
     tp.SetColor(1, 1, 1)
-    tp.SetFontSize(28)
+    tp.SetFontSize(24)
     tp.SetBold(True)
     tp.SetFontFamilyToArial()
 
@@ -219,7 +221,7 @@ def make_fire_legend(levels):
 
         tp = text.GetTextProperty()
         tp.SetColor(1, 1, 1)
-        tp.SetFontSize(24)
+        tp.SetFontSize(22)
         tp.SetBold(True)
         tp.SetFontFamilyToArial()
 
