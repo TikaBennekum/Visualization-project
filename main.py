@@ -51,7 +51,7 @@ def prompt_user_settings():
     params = {
         "terrain_type": "mountain",
         "fire_type": "head",
-        "curvature": 80,
+        "curvature": 40,
         "timestep": 10000,
         "timestep_start": 10000,
         "timestep_end": 15000,
@@ -72,11 +72,10 @@ def prompt_user_settings():
 
             print("   Curvature: [1] 40 (default), [2] 80, [3] 320")
             curve_choice = input("   Select (1, 2, or 3): ").strip()
-            if curve_choice == "1":
-                params["curvature"] = 40
+            if curve_choice == "2":
+                params["curvature"] = 80
             elif curve_choice == "3":
                 params["curvature"] = 320
-            # else default 80
 
         if animation_type == "interactive":
             print("\n   Enter timestep for interactive view:")
@@ -144,9 +143,7 @@ def prompt_user_settings():
         if animation_type == "interactive":
             print(f"Timestep: {params['timestep']}")
         else:
-            print(
-                f"Timestep range: {params['timestep_start']} to {params['timestep_end']}"
-            )
+            print(f"Timestep start: {params['timestep_start']}")
     else:
         if animation_type == "interactive":
             print(f"Timestep: {params['timesteps'][0]}")
@@ -175,5 +172,7 @@ if __name__ == "__main__":
             terrain_type=params["terrain_type"],
             fire_type=params["fire_type"],
             curvature=params["curvature"],
-            timestep=params["timestep"],
+            timestep=params["timestep_start"]
+            if animation_type == "frames"
+            else params["timestep"],
         )

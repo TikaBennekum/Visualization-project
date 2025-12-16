@@ -111,7 +111,7 @@ def create_frames(
         render_window.Render()
         w2if.Modified()
 
-        png.SetFileName(f"frames/frame_{frame_id:05d}.png")
+        png.SetFileName(f"frames/frame_{extract_number(fname)}.png")
         png.Write()
 
     print("\nDone writing PNG frames!")

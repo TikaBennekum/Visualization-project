@@ -75,12 +75,14 @@ def create_singleview_visualisation(
     renderer = make_renderer(visualisation_type="singleview")
 
     # Adds title
-    title, subtitle = make_title(terrain_type, fire_type, curvature)
+    title, subtitle = make_title(
+        terrain_type, fire_type, curvature, fontsize_title=40, fontsize_subtitle=34
+    )
     renderer.AddViewProp(title)
     renderer.AddViewProp(subtitle)
 
     # Adds timestep text
-    timestamp_actor = make_timestep_text(timestep)
+    timestamp_actor = make_timestep_text(timestep, fontsize=34)
     renderer.AddViewProp(timestamp_actor)
 
     # Adds vegetation to the visualization
@@ -94,7 +96,7 @@ def create_singleview_visualisation(
     # Adds wind streamlines (detailed flow visualization)
     stream_actor, stream_tracer, stream_calc, stream_tube = make_wind_streamlines(
         grid,
-        num_seeds=17,
+        num_seeds=15,
         tube_radius=4.0,
         color=(0.95, 0.95, 0.95),
         terrain=terrain_type,
@@ -135,9 +137,7 @@ def create_singleview_visualisation(
     # create a 3D follower speed label above the arrow (sticks in world space)
     spd = wind_speed(mean_u, mean_v, mean_w)
     wind_label = make_wind_speed_follower(
-        renderer,
-        wind_actor,
-        speed_value=spd,
+        renderer, wind_actor, speed_value=spd, scale=25
     )
 
     if animation:

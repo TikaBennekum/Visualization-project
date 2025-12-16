@@ -117,7 +117,7 @@ def make_fire_legend(levels, visualisation_type="multiview"):
     x0 = 0.75  # left position
     y0 = 0.75  # top position
     dy = 0.03  # vertical spacing
-    sq_px = 24  # square size (pixels)
+    sq_px = 30 if visualisation_type == "singleview" else 24  # square size (pixels)
 
     # -------------------------
     #  Background box
@@ -132,7 +132,7 @@ def make_fire_legend(levels, visualisation_type="multiview"):
     # Width/height of box in pixels
     if visualisation_type == "singleview":
         box_h = int((len(levels) + 1) * 50)
-        box_w = 250
+        box_w = 270
     else:
         box_h = int((len(levels) + 1) * 32)
         box_w = 190
@@ -171,7 +171,7 @@ def make_fire_legend(levels, visualisation_type="multiview"):
 
     tp = title.GetTextProperty()
     tp.SetColor(1, 1, 1)
-    tp.SetFontSize(24)
+    tp.SetFontSize(34 if visualisation_type == "singleview" else 24)
     tp.SetBold(True)
     tp.SetFontFamilyToArial()
 
@@ -221,7 +221,7 @@ def make_fire_legend(levels, visualisation_type="multiview"):
 
         tp = text.GetTextProperty()
         tp.SetColor(1, 1, 1)
-        tp.SetFontSize(22)
+        tp.SetFontSize(32 if visualisation_type == "singleview" else 22)
         tp.SetBold(True)
         tp.SetFontFamilyToArial()
 
