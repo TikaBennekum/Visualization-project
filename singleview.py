@@ -76,13 +76,13 @@ def create_singleview_visualisation(
 
     # Adds title
     title, subtitle = make_title(
-        terrain_type, fire_type, curvature, fontsize_title=40, fontsize_subtitle=34
+        terrain_type, fire_type, curvature, fontsize_title=50, fontsize_subtitle=40
     )
     renderer.AddViewProp(title)
     renderer.AddViewProp(subtitle)
 
     # Adds timestep text
-    timestamp_actor = make_timestep_text(timestep, fontsize=34)
+    timestamp_actor = make_timestep_text(timestep, fontsize=40)
     renderer.AddViewProp(timestamp_actor)
 
     # Adds vegetation to the visualization
@@ -137,7 +137,7 @@ def create_singleview_visualisation(
     # create a 3D follower speed label above the arrow (sticks in world space)
     spd = wind_speed(mean_u, mean_v, mean_w)
     wind_label = make_wind_speed_follower(
-        renderer, wind_actor, speed_value=spd, scale=25
+        renderer, wind_actor, speed_value=spd, scale=27
     )
 
     if animation:
