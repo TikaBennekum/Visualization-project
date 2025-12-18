@@ -88,7 +88,11 @@ def create_frames(
             grid = reader.GetOutput()
 
             # Update timestep text
-            update_timestep_text(timestamp_actor[i], extract_number(fname))
+            print(fname)
+            if fname == "mountain_headcurve320/output.65000.vts":
+                update_timestep_text(timestamp_actor[i], 64000)
+            else:
+                update_timestep_text(timestamp_actor[i], extract_number(fname))
 
             # Update wind arrow
             mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
