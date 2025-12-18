@@ -88,9 +88,9 @@ def create_frames(
             grid = reader.GetOutput()
 
             # Update timestep text
-            print(fname)
-            if fname == "mountain_headcurve320/output.65000.vts":
-                update_timestep_text(timestamp_actor[i], 64000)
+            #  We use the file name except for the case of missing file for which we use the previous timestep
+            if fname == "mountain_headcurve40/output.66000.vts":
+                update_timestep_text(timestamp_actor[i], 65000)
             else:
                 update_timestep_text(timestamp_actor[i], extract_number(fname))
 
