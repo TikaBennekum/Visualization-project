@@ -9,13 +9,15 @@ def make_title(
     terrain_type,
     fire_type=None,
     curvature=None,
+    fontsize_title=32,
+    fontsize_subtitle=28,
 ):
     """Creates a static title actor for all frames."""
     title = vtk.vtkTextActor()
     title.SetInput("Fire Spread Simulation")
 
     tp = title.GetTextProperty()
-    tp.SetFontSize(32)
+    tp.SetFontSize(fontsize_title)
     tp.SetBold(True)
     tp.SetColor(1, 1, 1)
     tp.SetFontFamilyToArial()
@@ -41,7 +43,7 @@ def make_title(
     subtitle.SetInput(text)
     sub_prop = subtitle.GetTextProperty()
     sub_prop.SetFontFamilyToArial()
-    sub_prop.SetFontSize(28)
+    sub_prop.SetFontSize(fontsize_subtitle)
     sub_prop.SetColor(1, 1, 1)
     sub_prop.SetBold(False)
     sub_prop.SetJustificationToCentered()
@@ -52,7 +54,7 @@ def make_title(
     return title, subtitle
 
 
-def make_timestep_text(timestep=1000):
+def make_timestep_text(timestep=1000, fontsize=28):
     """Creates a text actor that will display the timestep."""
     txt = vtk.vtkTextActor()
     timestap_seconds = timestep // 100
@@ -61,7 +63,7 @@ def make_timestep_text(timestep=1000):
     txt.SetInput(f"Time elapsed: {minutes:d} min {seconds:02d} s")
 
     tp = txt.GetTextProperty()
-    tp.SetFontSize(28)
+    tp.SetFontSize(fontsize)
     tp.SetBold(True)
     tp.SetColor(1.0, 1.0, 1.0)
     tp.SetFontFamilyToArial()

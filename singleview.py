@@ -82,7 +82,7 @@ def create_singleview_visualisation(
     # adds wind streamlines
     stream_actor, stream_tracer, stream_calc, stream_tube = make_wind_streamlines(
         grid,
-        num_seeds=17,
+        num_seeds=15,
         tube_radius=4.0,
         color=(0.95, 0.95, 0.95),
         terrain=terrain_type,
@@ -120,9 +120,7 @@ def create_singleview_visualisation(
 
     spd = wind_speed(mean_u, mean_v, mean_w)
     wind_label = make_wind_speed_follower(
-        renderer,
-        wind_actor,
-        speed_value=spd,
+        renderer, wind_actor, speed_value=spd, scale=27
     )
 
     if animation:
