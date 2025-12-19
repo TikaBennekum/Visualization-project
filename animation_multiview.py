@@ -75,7 +75,7 @@ def create_frames(
     stream_tuple,
     files,
 ):
-    """ Creates frames."""
+    """Creates frames."""
     create_animation_directory()
     w2if, png = setup_frame(render_window)
 

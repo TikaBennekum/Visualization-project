@@ -108,9 +108,7 @@ def create_singleview_visualisation(
 
     # adds general wind arrow
     mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
-    wind = make_wind_arrow(
-        mean_u, mean_v, mean_w
-    )
+    wind = make_wind_arrow(mean_u, mean_v, mean_w)
     wind_actor = wind[0]
     renderer.AddActor(wind_actor)
 

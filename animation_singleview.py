@@ -48,7 +48,7 @@ def get_all_files(directory):
 
 
 def extract_number(path):
-    """ extract number."""
+    """extract number."""
     # extract the last integer in the filename
     nums = re.findall(r"\d+", path)
     return int(nums[-1])  # time index is usually the last number
@@ -69,7 +69,7 @@ def create_frames(
     stream_tuple,
     files,
 ):
-    """ creaetes frames."""
+    """creaetes frames."""
     create_animation_directory()
     w2if, png = setup_frame(render_window)
 

@@ -78,7 +78,7 @@ def make_wind_speed_follower(
     x_offset_factor=-0.3,
     scale=20.0,
 ):
-    """ Makes the arrow label move along with the cameraview."""
+    """Makes the arrow label move along with the cameraview."""
     vector_text = vtk.vtkVectorText()
     vector_text.SetText(f"{speed_value:.2f} {unit}")
 
@@ -112,7 +112,7 @@ def update_wind_speed_follower(
     height_offset_factor=0.25,
     x_offset_factor=-0.3,
 ):
-    """ Makes the arrow label move along with the cameraview every timestep."""
+    """Makes the arrow label move along with the cameraview every timestep."""
     try:
         mapper = text_actor.GetMapper()
         src = mapper.GetInputConnection(0, 0).GetProducer()
@@ -280,8 +280,7 @@ def make_wind_streamlines(
 
 
 def update_wind_streamlines(stream_tuple, grid):
-    """Update the streamlines pipeline when a new `grid` is available.
-    """
+    """Update the streamlines pipeline when a new `grid` is available."""
     if stream_tuple is None:
         return None
     actor, tracer, calc, tube = stream_tuple

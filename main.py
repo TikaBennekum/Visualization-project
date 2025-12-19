@@ -171,7 +171,9 @@ if __name__ == "__main__":
             terrain_type=params["terrain_type"],
             fire_type=params["fire_type"],
             curvature=params["curvature"],
-            timestep=params["timestep_start"]
-            if animation_type == "frames"
-            else params["timestep"],
+            timestep=(
+                params["timestep_start"]
+                if animation_type == "frames"
+                else params["timestep"]
+            ),
         )
