@@ -4,8 +4,7 @@ Names: Tika van Bennekum, Anezka Potesilova
 Student 13392425, 15884392
 
 File description:
-    This is the main file.
-    Here we create a dynamic visualization of a wildfire using VTK.
+    A single view of a visualization is generated here.
 """
 
 #!/usr/bin/env vtkpython
@@ -39,16 +38,8 @@ def create_singleview_visualisation(
 ):
     """
     Creates a single-view visualization of the wildfire simulation.
-    Parameters:
-        animation (bool): Whether to create an animation or just a static view.
-        terrain_type (str): "mountain" or "valley"
-        fire_type (str): "back" or "head" -- only used for mountain
-        curvature (int): curvature value for mountain simulations -- 40, 80, or 320 -- only used for mountain
-        timestep (int): Timestep to load for static visualization and use as starting point for animation.
-    Returns:
-        None
     """
-    # Reading the VTS dataset
+    # reading the VTS dataset
     if terrain_type == "valley":
         directory = f"{terrain_type}"
     else:
@@ -56,7 +47,7 @@ def create_singleview_visualisation(
 
     filename = f"{directory}/output.{timestep}.vts"
 
-    # Check if file exists before trying to read it
+    # check if file exists before trying to read it
     if not os.path.isfile(filename):
         print(f"\nERROR: File not found: {filename}")
         print(f"Please ensure the timestep {timestep} exists for:")
@@ -71,27 +62,24 @@ def create_singleview_visualisation(
     reader.Update()
     grid = reader.GetOutput()
 
-    # Initializes rendering
     renderer = make_renderer(visualisation_type="singleview")
 
-    # Adds title
     title, subtitle = make_title(terrain_type, fire_type, curvature)
     renderer.AddViewProp(title)
     renderer.AddViewProp(subtitle)
 
-    # Adds timestep text
     timestamp_actor = make_timestep_text(timestep)
     renderer.AddViewProp(timestamp_actor)
 
-    # Adds vegetation to the visualization
+    # adds vegetation to the visualization
     vegetation_actor, vegetation_lut, vegetation_contour = make_vegetation_actor(grid)
     renderer.AddActor(vegetation_actor)
 
-    # Creates black plane (burnt ground)
+    # creates black plane (burnt ground)
     ground_actor, ground_slice = create_plane(grid)
     renderer.AddActor(ground_actor)
 
-    # Adds wind streamlines (detailed flow visualization)
+    # adds wind streamlines
     stream_actor, stream_tracer, stream_calc, stream_tube = make_wind_streamlines(
         grid,
         num_seeds=17,
@@ -102,13 +90,12 @@ def create_singleview_visualisation(
     if stream_actor is not None:
         renderer.AddActor(stream_actor)
 
-    # Adds fire and smoke to the visualization
+    # adds fire and smoke to the visualization
     (levels, fire_smoke_actors, fire_contours) = make_fire_smoke_actors(grid)
 
     for actor in fire_smoke_actors:
         renderer.AddActor(actor)
 
-    # Adds fire legend
     legend = make_fire_legend(levels, visualisation_type="singleview")
 
     for item in legend:
@@ -119,20 +106,18 @@ def create_singleview_visualisation(
         else:
             renderer.AddViewProp(item)  # background box or title
 
-    # Adds general wind arrow
+    # adds general wind arrow
     mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
     wind = make_wind_arrow(
         mean_u, mean_v, mean_w
-    )  # <- keep as tuple (actor, transform, tf)
+    )
     wind_actor = wind[0]
     renderer.AddActor(wind_actor)
 
-    # Interactive rendering
     setup_camera(renderer)
     render_window, interactor = make_window_and_interactor()
     render_window.AddRenderer(renderer)
 
-    # create a 3D follower speed label above the arrow (sticks in world space)
     spd = wind_speed(mean_u, mean_v, mean_w)
     wind_label = make_wind_speed_follower(
         renderer,
@@ -141,7 +126,6 @@ def create_singleview_visualisation(
     )
 
     if animation:
-        # Animation
         filters = {
             "veg": vegetation_contour,
             "smoke_low": fire_contours[0],

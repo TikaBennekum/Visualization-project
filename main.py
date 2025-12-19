@@ -16,16 +16,15 @@ from singleview import create_singleview_visualisation
 def prompt_user_settings():
     """
     Interactive menu to prompt user for visualization mode and animation type.
-    Returns (mode, animation_type, params) where:
       - mode: "single" or "multi"
       - animation_type: "interactive" or "frames"
-      - params: dict of terrain/fire/curvature settings (used only for single-view)
+      - pterrain: "mountain" or "valley
     """
     print("\n" + "=" * 60)
     print("WILDFIRE VISUALIZATION - SETUP MENU")
     print("=" * 60)
 
-    # Step 1: Choose visualization mode
+    # mode
     print("\n1. Choose visualization mode:")
     print("   [1] Multi-view (six topographies compared side-by-side)")
     print("   [2] Single-view (one topography)")
@@ -36,7 +35,7 @@ def prompt_user_settings():
     else:
         mode = "multi"
 
-    # Step 2: Choose animation type
+    # animation type
     print("\n2. Choose animation type:")
     print("   [1] Interactive window (explore with mouse/keyboard)")
     print("   [2] Generate animation frames (PNG sequence)")
@@ -47,7 +46,7 @@ def prompt_user_settings():
     else:
         animation_type = "interactive"
 
-    # Step 3: For single-view, ask for simulation parameters
+    # terrain
     params = {
         "terrain_type": "mountain",
         "fire_type": "head",
@@ -76,7 +75,6 @@ def prompt_user_settings():
                 params["curvature"] = 40
             elif curve_choice == "3":
                 params["curvature"] = 320
-            # else default 80
 
         if animation_type == "interactive":
             print("\n   Enter timestep for interactive view:")
@@ -160,7 +158,7 @@ def prompt_user_settings():
 
 
 if __name__ == "__main__":
-    # Prompt user for settings
+    # prompt user for settings
     mode, animation_type, params = prompt_user_settings()
 
     if mode == "multi":

@@ -68,7 +68,6 @@ def wind_speed(mean_u, mean_v, mean_w):
     return float(np.sqrt(mean_u**2 + mean_v**2 + mean_w**2))
 
 
-# 3D follower-style label that sticks to the wind arrow in world space
 def make_wind_speed_follower(
     renderer,
     wind_actor,
@@ -79,7 +78,7 @@ def make_wind_speed_follower(
     x_offset_factor=-0.3,
     scale=20.0,
 ):
-    # Use vtkFollower so the text always faces the camera and supports SetCamera
+    """ Makes the arrow label move along with the cameraview."""
     vector_text = vtk.vtkVectorText()
     vector_text.SetText(f"{speed_value:.2f} {unit}")
 
@@ -89,7 +88,6 @@ def make_wind_speed_follower(
     follower = vtk.vtkFollower()
     follower.SetMapper(mapper)
     follower.GetProperty().SetColor(*color)
-    # VectorText units are small; scale up generously
     follower.SetScale(scale, scale, scale)
 
     # Position above the arrow
@@ -114,7 +112,7 @@ def update_wind_speed_follower(
     height_offset_factor=0.25,
     x_offset_factor=-0.3,
 ):
-    # Update text if mapper supports VectorText input; else ignore text update
+    """ Makes the arrow label move along with the cameraview every timestep."""
     try:
         mapper = text_actor.GetMapper()
         src = mapper.GetInputConnection(0, 0).GetProducer()
@@ -132,7 +130,6 @@ def update_wind_speed_follower(
         z_offset = (bz1 - bz0) * height_offset_factor
         text_actor.SetPosition(cx, cy, bz1 + z_offset)
     except Exception:
-        # fallback to actor position
         x, y, z = wind_actor.GetPosition()
         text_actor.SetPosition(x, y, z)
 
@@ -209,7 +206,7 @@ def make_wind_streamlines(
     Returns (actor, tracer, calculator, tube_filter).
     """
 
-    # Build vector array 'velocity' from u,v,w
+    # build vector array velocity from u,v,w
     calc = vtk.vtkArrayCalculator()
     calc.SetInputData(grid)
     calc.AddScalarVariable("u", "u")
@@ -219,11 +216,10 @@ def make_wind_streamlines(
     calc.SetResultArrayName("velocity")
     calc.Update()
 
-    # Get grid bounds
     bounds = grid.GetBounds()
     x_min, x_max, y_min, y_max, z_min, z_max = bounds
 
-    # Place seeds along a horizontal line at the top-left corner (x_min, y_max)
+    # place seeds along a horizontal line at the top-left corner
     if terrain == "mountain":
         seed_z = z_min + 0.1 * (z_max - z_min)  # slightly above ground
     else:
@@ -239,7 +235,7 @@ def make_wind_streamlines(
     seed_poly = vtk.vtkPolyData()
     seed_poly.SetPoints(seeds)
 
-    # Stream tracer
+    # stream tracer
     rk4 = vtk.vtkRungeKutta4()
     tracer = vtk.vtkStreamTracer()
     tracer.SetInputConnection(calc.GetOutputPort())
@@ -255,7 +251,6 @@ def make_wind_streamlines(
     )
     tracer.Update()
 
-    # Tube filter for better visualization
     tube = vtk.vtkTubeFilter()
     tube.SetInputConnection(tracer.GetOutputPort())
     tube.SetNumberOfSides(20)
@@ -265,17 +260,16 @@ def make_wind_streamlines(
     tube.SetVaryRadiusToVaryRadiusOff()
     tube.Update()
 
-    # Mapper + actor
     mapper = vtk.vtkPolyDataMapper()
     mapper.SetInputConnection(tube.GetOutputPort())
 
-    # Disable scalar coloring
+    # disable scalar coloring
     mapper.ScalarVisibilityOff()
 
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
 
-    # Set a constant gray color
+    # set a constant gray color
     actor.GetProperty().SetColor(color)  # mid gray
     actor.GetProperty().SetOpacity(0.17)
 
@@ -287,9 +281,6 @@ def make_wind_streamlines(
 
 def update_wind_streamlines(stream_tuple, grid):
     """Update the streamlines pipeline when a new `grid` is available.
-
-    stream_tuple should be the (actor, tracer, calculator, tube_filter) returned
-    by `make_wind_streamlines`.
     """
     if stream_tuple is None:
         return None
@@ -297,11 +288,9 @@ def update_wind_streamlines(stream_tuple, grid):
     if calc is None or tracer is None:
         return actor
     try:
-        # Replace calculator input and re-run the pipeline
         if hasattr(calc, "SetInputData"):
             calc.SetInputData(grid)
         else:
-            # try connection-based
             tp = vtk.vtkTrivialProducer()
             tp.SetOutput(grid)
             if hasattr(calc, "SetInputConnection"):
