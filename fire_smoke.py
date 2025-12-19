@@ -107,29 +107,23 @@ def make_fire_legend(levels, visualisation_type="multiview"):
     """
     Build a discrete legend showing each isocontour level as
     a colored square with a text label + a title + grey background box.
-
-    Returns a list of actors.
     """
     legend_actors = []
     colors = list(get_fire_colors().values())
 
-    # Legend layout (NDC coordinates)
     x0 = 0.75  # left position
     y0 = 0.75  # top position
     dy = 0.03  # vertical spacing
-    sq_px = 30 if visualisation_type == "singleview" else 24  # square size (pixels)
+    sq_px = 30 if visualisation_type == "singleview" else 24  # square size
 
-    # -------------------------
-    #  Background box
-    # -------------------------
     bg = vtk.vtkActor2D()
     bg_mapper = vtk.vtkPolyDataMapper2D()
 
-    # Simple rectangle in pixel space
+    # simple rectangle in pixel space
     bg_pts = vtk.vtkPoints()
     bg_polys = vtk.vtkCellArray()
 
-    # Width/height of box in pixels
+    # width/height of box in pixels
     if visualisation_type == "singleview":
         box_h = int((len(levels) + 1) * 50)
         box_w = 270
@@ -161,9 +155,7 @@ def make_fire_legend(levels, visualisation_type="multiview"):
 
     legend_actors.append(bg)
 
-    # -------------------------
-    #  Title
-    # -------------------------
+    # title
     title = vtk.vtkTextActor()
     title.SetInput("Temperature")
     title.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
@@ -177,20 +169,15 @@ def make_fire_legend(levels, visualisation_type="multiview"):
 
     legend_actors.append(title)
 
-    # -------------------------
-    #  Squares + labels
-    # -------------------------
     for i, (temp, col) in enumerate(zip(levels, colors)):
         y = y0 - i * dy
 
-        # --- Colored square (2D polydata) ---
         square = vtk.vtkActor2D()
         square_mapper = vtk.vtkPolyDataMapper2D()
 
         pts = vtk.vtkPoints()
         polys = vtk.vtkCellArray()
 
-        # Square geometry in pixel coordinates
         pts.InsertNextPoint(0, 0, 0)
         pts.InsertNextPoint(sq_px, 0, 0)
         pts.InsertNextPoint(sq_px, sq_px, 0)
@@ -213,7 +200,6 @@ def make_fire_legend(levels, visualisation_type="multiview"):
 
         legend_actors.append(square)
 
-        # --- Label text ---
         text = vtk.vtkTextActor()
         text.SetInput(f"~ {temp:.0f} K")
         text.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()

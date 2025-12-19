@@ -1,5 +1,10 @@
 """
-Text overlays for titles and timestep display.
+Course: Scientific virtualisation and virtual reality
+Names: Tika van Bennekum, Anezka Potesilova
+Student 13392425, 15884392
+
+File description:
+    Text overlays for titles and timestep display.
 """
 
 import vtk

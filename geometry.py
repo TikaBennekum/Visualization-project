@@ -4,7 +4,7 @@ Names: Tika van Bennekum, Anezka Potesilova
 Student 13392425, 15884392
 
 File description:
-    Makes outline actor.
+    Handles geometry of visualization.
 """
 
 import vtk

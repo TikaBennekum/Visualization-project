@@ -1,3 +1,12 @@
+"""
+Course: Scientific virtualisation and virtual reality
+Names: Tika van Bennekum, Anezka Potesilova
+Student 13392425, 15884392
+
+File description:
+    File to inspect data attributes.
+"""
+
 import vtk
 
 reader = vtk.vtkXMLStructuredGridReader()

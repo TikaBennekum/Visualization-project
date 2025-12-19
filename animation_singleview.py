@@ -48,7 +48,8 @@ def get_all_files(directory):
 
 
 def extract_number(path):
-    # Extract the last integer in the filename
+    """ extract number."""
+    # extract the last integer in the filename
     nums = re.findall(r"\d+", path)
     return int(nums[-1])  # time index is usually the last number
 
@@ -68,6 +69,7 @@ def create_frames(
     stream_tuple,
     files,
 ):
+    """ creaetes frames."""
     create_animation_directory()
     w2if, png = setup_frame(render_window)
 
@@ -78,10 +80,8 @@ def create_frames(
         reader.Update()
         grid = reader.GetOutput()
 
-        # Update timestep text
         update_timestep_text(timestamp_actor, extract_number(fname))
 
-        # Update wind arrow
         mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
         update_wind_arrow(
             wind,
@@ -100,10 +100,8 @@ def create_frames(
             x_offset_factor=-0.3,
         )
 
-        # Update wind streamlines
         update_wind_streamlines(stream_tuple, grid)
 
-        # Update all filters at once
         for f in filters.values():
             f.SetInputData(grid)
             f.Update()

@@ -4,7 +4,7 @@ Names: Tika van Bennekum, Anezka Potesilova
 Student 13392425, 15884392
 
 File description:
-    Rendering of the scene of the visualization.
+    The multi view animation is generated here.
 """
 
 import os
@@ -55,7 +55,7 @@ def get_all_files(range):
 
 
 def extract_number(path):
-    # Extract the last integer in the filename
+    """Extract the last integer in the filename"""
     nums = re.findall(r"\d+", path)
     return int(nums[-1])  # time index is usually the last number
 
@@ -75,6 +75,7 @@ def create_frames(
     stream_tuple,
     files,
 ):
+    """ Creates frames."""
     create_animation_directory()
     w2if, png = setup_frame(render_window)
 
@@ -87,14 +88,12 @@ def create_frames(
             reader.Update()
             grid = reader.GetOutput()
 
-            # Update timestep text
             #  We use the file name except for the case of missing file for which we use the previous timestep
             if fname == "mountain_headcurve40/output.66000.vts":
                 update_timestep_text(timestamp_actor[i], 65000)
             else:
                 update_timestep_text(timestamp_actor[i], extract_number(fname))
 
-            # Update wind arrow
             mean_u, mean_v, mean_w = compute_mean_wind_direction(grid)
             update_wind_arrow(
                 wind[i],
@@ -110,10 +109,8 @@ def create_frames(
                 speed_value,
             )
 
-            # Update wind streamlines
             update_wind_streamlines(stream_tuple[i], grid)
 
-            # Update all filters at once
             for f in filters[i].values():
                 f.SetInputData(grid)
                 f.Update()
